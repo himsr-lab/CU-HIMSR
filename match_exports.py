@@ -94,28 +94,31 @@ println("Counting unique file names (2/3):")
 println("---------------------------------")
 TOTAL = 0
 LABELS = 0
+UNMATCHED = 0
+batch_label_counts = {}  # label counts by batch and channel
 for batch_name in BATCH_NAMES:
     println("BATCH: \"" + batch_name + "\"")
 
-    label_count = {}
+    label_counts = {}  # label counts by channel
     for channel_folder in CHANNEL_FOLDERS:
         println("\tCHANNEL: \"" + channel_folder + "\"")
 
         for file in get_files(os.path.join(channel_folder, batch_name), ".txt"):
             file_name = file.rsplit('\\', 1)[1]
-            if file_name in label_count:
-                label_count[file_name] += 1  # increment key value
+            if file_name in label_counts:
+                label_counts[file_name] += 1  # increment key value
             else:  # file not in list
-                label_count[file_name] = 1  # add key: value pair
+                label_counts[file_name] = 1  # add key: value pair
             TOTAL += 1
-println(label_count)
-LABELS = len(label_count)
+    batch_label_counts[batch_name] = label_counts
 println(os.linesep)
+
+
 
 # move files to a subfolder, if they don't exist in all batch folders
 println("Moving unmatched files to folder (3/3):")
 println("---------------------------------------")
-UNMATCHED = 0
+
 CHANNELS = len(CHANNEL_FOLDERS)
 for channel_folder in CHANNEL_FOLDERS:
     println("CHANNEL: \"" + channel_folder + "\"")
@@ -123,17 +126,20 @@ for channel_folder in CHANNEL_FOLDERS:
     for batch_name in BATCH_NAMES:
         println("\tBATCH: \"" + batch_name + "\"")
 
-        for name, count in label_count.items():
-            if count < CHANNELS:
+        for label, counts in batch_label_counts[batch_name].items():
+            if counts < CHANNELS:  # label does not exist in all batch folders
                 cwd_path = os.path.join(channel_folder, batch_name)
                 tmp_path = os.path.join(cwd_path + os.sep + "unmatched")
-                # if not os.path.exists(tmp_path):
-                #     os.mkdir(tmp_path)
-                # shutil.move(os.path.join(cwd_path, name), os.path.join(tmp_path, name))
-                print(os.path.join(tmp_path, name))
-                UNMATCHED += 1
+                if not os.path.exists(tmp_path):
+                    os.mkdir(tmp_path)
+                try:
+                    shutil.move(os.path.join(cwd_path, label), os.path.join(tmp_path, label))
+                    UNMATCHED += 1
+                except FileNotFoundError:
+                    pass
+                
 println(os.linesep)
 println("CHANNELS: " + str(CHANNELS) + ", BATCHES: " + str(len(BATCH_NAMES)) +\
-        ", LABELS: " + str(LABELS) + ", UNMATCHED: " + str(UNMATCHED) +\
-        ", TOTAL: " + str(TOTAL))
+        ", TEXTFILES: " + str(TOTAL) + ", UNMATCHED: " + str(UNMATCHED))
+
 #WAIT = input("Press ENTER to end this program.")
