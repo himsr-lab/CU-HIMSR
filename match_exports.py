@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 """
-    Finds matching regions in SentiBio exports
-    Version:    1.0 (2020-06-02)
+    Removes unmatched regions in phenoptrReports exports
+    Version:    1.0 (2020-06-03)
     Author:     Christian Rickert
     Group:  Human Immune Monitoring Shared Resource (HIMSR)
             University of Colorado, Anschutz Medical Campus
@@ -66,7 +66,6 @@ def println(string=""):
 EXPORT_FOLDER = r"C:\Users\Christian Rickert\Documents\GitHub\phenoptr-fixes\export"
 #EXPORT_FOLDER = r"\\Micro-LS7.ucdenver.pvt\HI3-Microscope\Data\Vectra3\SentiBio\Panel  63-2 EXPORT"
 CHANNEL_FOLDERS = []
-BATCH_FOLDERS = []
 BATCH_NAMES = []
 
 # retrieve unique batch folder names and store folder locations
@@ -82,11 +81,10 @@ for channel_folder in get_folders(EXPORT_FOLDER):
     for batch_folder in get_folders(channel_folder):
         batch_name = batch_folder.rsplit('\\', 1)[1]
         println("\t\tBATCH: \"" + batch_name + "\"")
-        BATCH_FOLDERS.append(batch_folder)
         if batch_name not in BATCH_NAMES:  # unique names only
             BATCH_NAMES.append(batch_name)
 CHANNEL_FOLDERS.sort()
-BATCH_FOLDERS.sort()
+BATCH_NAMES.sort()
 println(os.linesep)
 
 # count unique file names in batch folders
@@ -95,7 +93,7 @@ println("---------------------------------")
 TOTAL = 0
 LABELS = 0
 UNMATCHED = 0
-batch_label_counts = {}  # label counts by batch and channel
+BATCH_LABEL_COUNTS = {}  # label counts by batch and channel
 for batch_name in BATCH_NAMES:
     println("BATCH: \"" + batch_name + "\"")
 
@@ -110,7 +108,7 @@ for batch_name in BATCH_NAMES:
             else:  # file not in list
                 label_counts[file_name] = 1  # add key: value pair
             TOTAL += 1
-    batch_label_counts[batch_name] = label_counts
+    BATCH_LABEL_COUNTS[batch_name] = label_counts
 println(os.linesep)
 
 
@@ -126,7 +124,7 @@ for channel_folder in CHANNEL_FOLDERS:
     for batch_name in BATCH_NAMES:
         println("\tBATCH: \"" + batch_name + "\"")
 
-        for label, counts in batch_label_counts[batch_name].items():
+        for label, counts in BATCH_LABEL_COUNTS[batch_name].items():
             if counts < CHANNELS:  # label does not exist in all batch folders
                 cwd_path = os.path.join(channel_folder, batch_name)
                 tmp_path = os.path.join(cwd_path + os.sep + "unmatched")
@@ -134,10 +132,10 @@ for channel_folder in CHANNEL_FOLDERS:
                     os.mkdir(tmp_path)
                 try:
                     shutil.move(os.path.join(cwd_path, label), os.path.join(tmp_path, label))
-                    UNMATCHED += 1
                 except FileNotFoundError:
                     pass
-                
+                UNMATCHED += 1
+
 println(os.linesep)
 println("CHANNELS: " + str(CHANNELS) + ", BATCHES: " + str(len(BATCH_NAMES)) +\
         ", TEXTFILES: " + str(TOTAL) + ", UNMATCHED: " + str(UNMATCHED))
