@@ -10,6 +10,7 @@
 
 #  imports
 
+import csv
 import os
 import shutil
 import sys
@@ -63,14 +64,15 @@ def println(string=""):
 #  constants & variables
 
 # assuming: export > channel > batch > file
-EXPORT_FOLDER = r"C:\Users\Christian Rickert\Documents\GitHub\phenoptr-fixes\export"
+EXPORT_FOLDER = r"C:\Users\Christian Rickert\Desktop\export"
+#EXPORT_FOLDER = r"C:\Users\Christian Rickert\Documents\GitHub\phenoptr-fixes\export"
 #EXPORT_FOLDER = r"\\Micro-LS7.ucdenver.pvt\HI3-Microscope\Data\Vectra3\SentiBio\Panel  63-2 EXPORT"
 CHANNEL_FOLDERS = []
 BATCH_NAMES = []
 
 # retrieve unique batch folder names and store folder locations
 println(os.linesep)
-println("Retrieving folder lists (1/3):")
+println("Retrieving folder lists (1/5):")
 println("------------------------------")
 println("EXPORT: \"" + EXPORT_FOLDER.rsplit('\\', 1)[1] + "\"\n")
 for channel_folder in get_folders(EXPORT_FOLDER):
@@ -83,17 +85,17 @@ for channel_folder in get_folders(EXPORT_FOLDER):
         println("\t\tBATCH: \"" + batch_name + "\"")
         if batch_name not in BATCH_NAMES:  # unique names only
             BATCH_NAMES.append(batch_name)
+
 CHANNEL_FOLDERS.sort()
 BATCH_NAMES.sort()
 println(os.linesep)
 
 # count unique file names in batch folders
-println("Counting unique file names (2/3):")
+println("Counting unique file names (2/5):")
 println("---------------------------------")
 TOTAL = 0
 LABELS = 0
-UNMATCHED = 0
-BATCH_LABEL_COUNTS = {}  # label counts by batch and channel
+BATCH_LABEL_COUNTS = {}  # label counts by batch
 for batch_name in BATCH_NAMES:
     println("BATCH: \"" + batch_name + "\"")
 
@@ -102,21 +104,20 @@ for batch_name in BATCH_NAMES:
         println("\tCHANNEL: \"" + channel_folder + "\"")
 
         for file in get_files(os.path.join(channel_folder, batch_name), ".txt"):
-            file_name = file.rsplit('\\', 1)[1]
-            if file_name in label_counts:
-                label_counts[file_name] += 1  # increment key value
+            label = file.rsplit('\\', 1)[1]
+            if label in label_counts:
+                label_counts[label] += 1  # increment key value
             else:  # file not in list
-                label_counts[file_name] = 1  # add key: value pair
+                label_counts[label] = 1  # add key: value pair
             TOTAL += 1
+
     BATCH_LABEL_COUNTS[batch_name] = label_counts
 println(os.linesep)
 
-
-
 # move files to a subfolder, if they don't exist in all batch folders
-println("Moving unmatched files to folder (3/3):")
+println("Moving unmatched files to folder (3/5):")
 println("---------------------------------------")
-
+UNMATCHED = 0
 CHANNELS = len(CHANNEL_FOLDERS)
 for channel_folder in CHANNEL_FOLDERS:
     println("CHANNEL: \"" + channel_folder + "\"")
@@ -136,8 +137,97 @@ for channel_folder in CHANNEL_FOLDERS:
                     pass
                 UNMATCHED += 1
 
-println(os.linesep)
 println("CHANNELS: " + str(CHANNELS) + ", BATCHES: " + str(len(BATCH_NAMES)) +\
         ", TEXTFILES: " + str(TOTAL) + ", UNMATCHED: " + str(UNMATCHED))
+println(os.linesep)
+
+# count lines unique file names in batch folders
+println("Counting lines in unique file names (4/5):")
+println("------------------------------------------")
+BATCH_LABEL_LINES = {}  # label line counts by batch
+for batch_name in BATCH_NAMES:
+    #println("BATCH: \"" + batch_name + "\"")
+
+    label_lines = {}  # label line counts by channel
+    for channel_folder in CHANNEL_FOLDERS:
+        #println("\tCHANNEL: \"" + channel_folder + "\"")
+
+        for file in get_files(os.path.join(channel_folder, batch_name), ".txt"):
+            label = file.rsplit('\\', 1)[1]
+
+            with open(file, 'r') as textfile:
+                for lines, line in enumerate(textfile):
+                    pass  # enumerate counts lines automatically
+
+                lines += 1
+            label_lines[label] = lines
+
+    BATCH_LABEL_LINES[batch_name] = label_lines
+print(BATCH_LABEL_LINES)
+println(os.linesep)
+
+# rewrite files to their consensus line entries across all batch folders
+println("Removing unmatched entries in files (5/5):")
+println("------------------------------------------")
+
+# find mimimum line entries for each file (label) in each batch folder
+BATCH_LABEL_MINS = {}  # minimum label line counts by channel
+for channel_folder in CHANNEL_FOLDERS:  # get minimum line counts for all labels first
+    
+    label_mins = {}  # minimum label line counts by batch
+    for batch_name in BATCH_NAMES:
+
+        for label, lines in BATCH_LABEL_LINES[batch_name].items():
+            try:
+                label_mins[label] = lines if lines < label_mins[label] else label_mins[label]
+            except KeyError:  # first label, does not exist yet
+                label_mins[label] = lines
+
+        BATCH_LABEL_MINS[batch_name] = label_mins
+
+# find the files that contain more lines than the minimum line entries found
+UNEVEN = 0
+batch_label_minfile = {}  # csv data for minimum line entry files
+batch_label_maxfile = {}  # csv data for maximum line entry files
+for channel_folder in CHANNEL_FOLDERS:  # now that we know the minimum line counts, let's compare file contents
+    #println("CHANNEL: \"" + channel_folder + "\"")
+    print(channel_folder)
+    for batch_name in BATCH_NAMES:
+        #println("\tBATCH: \"" + batch_name + "\"")
+
+        print(batch_name)
+        for label, lines in BATCH_LABEL_LINES[batch_name].items():
+            if BATCH_LABEL_LINES[batch_name][label] > BATCH_LABEL_MINS[batch_name][label]:
+                cwd_path = os.path.join(channel_folder, batch_name)
+                tmp_path = os.path.join(cwd_path + os.sep + "uneven")
+                if not os.path.exists(tmp_path):
+                    os.mkdir(tmp_path)
+                shutil.copy(os.path.join(cwd_path, label), os.path.join(tmp_path, label))
+
+            # if BATCH_LABEL_LINES[batch_name][label] > BATCH_LABEL_MINS[batch_name][label]:
+            #     batch_label_maxfile[batch_name] = textfile
+            #     # cwd_path = os.path.join(channel_folder, batch_name)
+            #     # tmp_path = os.path.join(cwd_path + os.sep + "uneven")
+            #     # if not os.path.exists(tmp_path):
+            #     #     os.mkdir(tmp_path)
+            #     # shutil.copy(os.path.join(cwd_path, label), os.path.join(tmp_path, label))
+            # else:  # BATCH_LABEL_LINES[batch_name][label] <= BATCH_LABEL_MINS[batch_name][label]
+            #     batch_label_minfile[batch_name] = textfile
+# UNEVEN = len(batch_label_maxfile)
+# print(batch_label_minfile)
+# print(batch_label_maxfile)
+# print(UNEVEN)
+            #print(label)
+        #for label, lines in BATCH_LABEL_LINES[batch_name].items():
+            # if lines == BATCH_LABEL_MINS[batch_name][label]:  # label line counts are different between batch folders
+            #     print("Found in:" + batch_name + ", File: " + label)
+                # cwd_path = os.path.join(channel_folder, batch_name)
+                # tmp_path = os.path.join(cwd_path + os.sep + "uneven")
+                # if not os.path.exists(tmp_path):
+                #     os.mkdir(tmp_path)
+                # shutil.copy(os.path.join(cwd_path, label), os.path.join(tmp_path, label))
+                #UNEVEN += 1
+            
+#println(os.linesep)
 
 #WAIT = input("Press ENTER to end this program.")
