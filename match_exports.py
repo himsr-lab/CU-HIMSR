@@ -101,7 +101,7 @@ for batch in BATCHES:
 
     FILE_COUNTS = {}  # file counts by channel
     for channel in CHANNELS:
-        println("\tCHANNEL: \"" + channel_folder + "\"")
+        println("\tCHANNEL: \"" + channel + "\"")
 
         for fileobject in get_files(os.path.join(EXPORT_FOLDER, channel, batch), ".txt"):
             file = fileobject.rsplit('\\', 1)[1]
@@ -121,7 +121,7 @@ println("---------------------------------------")
 UNMATCHED = 0
 CHANNEL_COUNT = len(CHANNELS)
 for channel in CHANNELS:
-    println("CHANNEL: \"" + channel_folder + "\"")
+    println("CHANNEL: \"" + channel + "\"")
 
     for batch in BATCHES:
         println("\tBATCH: \"" + batch + "\"")
@@ -153,7 +153,7 @@ for batch in BATCHES:
 
     CHANNEL_FILE_LINES = {}  # file line (absolute) by channel
     for channel in CHANNELS:
-        println("\tCHANNEL: \"" + channel_folder + "\"")
+        println("\tCHANNEL: \"" + channel + "\"")
 
 
         FILE_MINS = {}  # file line (minimum) count within channel
@@ -188,7 +188,7 @@ for batch in BATCHES:
 
 println(os.linesep)
 print(BATCH_CHANNEL_FILE)
-'''
+
 # Remove duplicate lines in unique file names in batch folders across channels
 println("Removing duplicate lines in unique files (5/6):")
 println("-----------------------------------------------")
@@ -204,13 +204,11 @@ for batch, channel_file in BATCH_CHANNEL_FILE.items():
 
             for row in reader:
                 id_value = row['Cell ID']
-                print(id_value)
                 id_set.add(id_value)
                 id_list.append(id_value)
             if len(id_set) < len(id_list):
                 print("duplicate entry in: " + channel + ": " + batch + ": "+ file + ": ")
-            print(id_set)
-
+'''
 
 for batch in BATCHES:
 
@@ -231,7 +229,7 @@ for batch in BATCHES:
 
     file_lines = {}  # file line counts by channel
     for channel in CHANNELS:
-        #println("\tCHANNEL: \"" + channel_folder + "\"")
+        #println("\tCHANNEL: \"" + channel + "\"")
 
 
         for fileobject in get_files(os.path.join(EXPORT_FOLDER, channel, batch), ".txt"):
@@ -274,8 +272,8 @@ UNEVEN = 0
 batch_file_minfile = {}  # csv data for minimum line entry files
 batch_file_maxfile = {}  # csv data for maximum line entry files
 for channel in CHANNELS:  # now that we know the minimum line counts, let's compare file contents
-    #println("CHANNEL: \"" + channel_folder + "\"")
-    #print(channel_folder)
+    #println("CHANNEL: \"" + channel + "\"")
+    #print(channel)
     for batch in BATCHES:
         #println("\tBATCH: \"" + batch + "\"")
 
