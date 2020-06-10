@@ -2,7 +2,7 @@
 
 """
     Removes unmatched regions in phenoptrReports exports
-    Version:    1.1 (2020-06-07)
+    Version:    1.1 (2020-06-09)
     Author:     Christian Rickert
     Group:      Human Immune Monitoring Shared Resource (HIMSR)
                 University of Colorado, Anschutz Medical Campus
@@ -74,7 +74,7 @@ BATCHES = []
 println(os.linesep)
 println("Retrieving folder lists (1/6):")
 println("------------------------------")
-println("EXPORT: \"" + EXPORT_FOLDER.rsplit('\\', 1)[1] + "\"\n")
+println("EXPORT: \"" + EXPORT_FOLDER.rsplit('\\', 1)[1] + "\"")
 for channel_folder in get_folders(EXPORT_FOLDER):
     println("\tCHANNEL: \"" + channel_folder + "\"")
     channel = channel_folder.rsplit('\\', 1)[1]
@@ -89,30 +89,34 @@ for channel_folder in get_folders(EXPORT_FOLDER):
 
 CHANNELS.sort()
 BATCHES.sort()
+println("CHANNELS: " + str(len(CHANNELS)) + ", BATCHES: " + str(len(BATCHES)) + ".")
 println(os.linesep)
 
 # count unique file names in batch folders across channels
 println("Counting unique file names (2/6):")
 println("---------------------------------")
-FILES = 0
+FILE_TARGET = "_seg_data.txt"
+println("FILE: \"" + FILE_TARGET + "\"")
+UNIQUE = 0
 BATCH_FILE_COUNTS = {}  # file counts by batch
 for batch in BATCHES:
-    println("BATCH: \"" + batch + "\"")
+    println("\tBATCH: \"" + batch + "\"")
 
     FILE_COUNTS = {}  # file counts by channel
     for channel in CHANNELS:
-        println("\tCHANNEL: \"" + channel + "\"")
+        println("\t\tCHANNEL: \"" + channel + "\"")
 
-        for fileobject in get_files(os.path.join(EXPORT_FOLDER, channel, batch), ".txt"):
+        for fileobject in get_files(os.path.join(EXPORT_FOLDER, channel, batch), FILE_TARGET):
             file = fileobject.rsplit('\\', 1)[1]
             if file in FILE_COUNTS:
                 FILE_COUNTS[file] += 1  # increment key value
             else:  # file not in list
                 FILE_COUNTS[file] = 1  # add key: value pair
-            FILES += 1
+            UNIQUE += 1
 
     BATCH_FILE_COUNTS[batch] = FILE_COUNTS
-print(BATCH_FILE_COUNTS)
+print("UNIQUE: " + str(UNIQUE) + ".")
+
 println(os.linesep)
 
 # move files to a subfolder, if they don't exist in batch folders across channels
@@ -120,45 +124,48 @@ println("Moving unmatched files to folder (3/6):")
 println("---------------------------------------")
 UNMATCHED = 0
 CHANNEL_COUNT = len(CHANNELS)
+FOLDER_TARGET = "unmatched"
+println("FOLDER: \"" + FOLDER_TARGET + "\"")
 for channel in CHANNELS:
-    println("CHANNEL: \"" + channel + "\"")
+    println("\tCHANNEL: \"" + channel + "\"")
 
     for batch in BATCHES:
-        println("\tBATCH: \"" + batch + "\"")
+        println("\t\tBATCH: \"" + batch + "\"")
 
         for file, counts in BATCH_FILE_COUNTS[batch].items():
             if counts < CHANNEL_COUNT:  # file does not exist in all batch folders
-                # cwd_path = os.path.join(EXPORT_FOLDER, channel, batch)
-                # tmp_path = os.path.join(cwd_path + os.sep + "unmatched")
-                # if not os.path.exists(tmp_path):
-                #     os.mkdir(tmp_path)
-                # try:
-                #     shutil.move(os.path.join(cwd_path, file), os.path.join(tmp_path, file))
-                #     UNMATCHED += 1  # only count moved files
-                # except FileNotFoundError:
-                #     pass
+                cwd_path = os.path.join(EXPORT_FOLDER, channel, batch)
+                unm_path = os.path.join(cwd_path + os.sep + FOLDER_TARGET)
+                if not os.path.exists(unm_path):
+                    os.mkdir(unm_path)
+                try:
+                    shutil.move(os.path.join(cwd_path, file), os.path.join(unm_path, file))
+                    UNMATCHED += 1  # only count moved files
+                except FileNotFoundError:
+                    pass
                 pass
 
-println("CHANNELS: " + str(CHANNELS) + ", BATCHES: " + str(len(BATCHES)) +\
-        ", TEXTFILES: " + str(FILES) + ", UNMATCHED: " + str(UNMATCHED))
+println("UNMATCHED: " + str(UNMATCHED) + ".")
 println(os.linesep)
 
 # count lines numbers in unique file names in batch folders across channels
-println("Checking line numbers in unique files (4/6):")
-println("--------------------------------------------")
+println("Checking line counts in unique files (4/6):")
+println("-------------------------------------------")
+CHECKED = 0
 BATCH_FILE_MINS = {}  # file line (minimum) counts by batch
 BATCH_CHANNEL_FILE_LINES = {}  # file line (actual) counts by batch and channel
+println("FILE: \"" + FILE_TARGET + "\"")
 for batch in BATCHES:
-    println("BATCH: \"" + batch + "\"")
+    println("\tBATCH: \"" + batch + "\"")
 
-    CHANNEL_FILE_LINES = {}  # file line (absolute) by channel
+    CHANNEL_FILE_LINES = {}  # file line (absolute) count by channel
     for channel in CHANNELS:
-        println("\tCHANNEL: \"" + channel + "\"")
+        println("\t\tCHANNEL: \"" + channel + "\"")
 
 
         FILE_MINS = {}  # file line (minimum) count within channel
         FILE_LINES = {}  # file line (absolute) count within channel
-        for fileobject in get_files(os.path.join(EXPORT_FOLDER, channel, batch), ".txt"):
+        for fileobject in get_files(os.path.join(EXPORT_FOLDER, channel, batch), FILE_TARGET):
             file = fileobject.rsplit('\\', 1)[1]
             line_count = 0
             with open(fileobject, 'r') as textfile:
@@ -172,140 +179,116 @@ for batch in BATCHES:
             else:  # file not in list
                 FILE_MINS[file] = line_count
             FILE_LINES[file] = line_count
+            CHECKED += 1
         CHANNEL_FILE_LINES[channel] = FILE_LINES
    
     BATCH_FILE_MINS[batch] = FILE_MINS
     BATCH_CHANNEL_FILE_LINES[batch] = CHANNEL_FILE_LINES
-
-BATCH_CHANNEL_FILE = {}  # these files need to be checked
+'''
+BATCH_CHANNEL_PAIRED_DIFF = {}  # these file serve as a reference
+BATCH_CHANNEL_UNPAIRED_DIFF = {}  # these files need to be checked
 for batch in BATCHES:
 
+    CHANNEL_PAIRED_DIFF = {}
+    CHANNEL_UNPAIRED_DIFF = {}
     for channel in CHANNELS:
+
+        PAIRED_DIFF = {}
+        UNPAIRED_DIFF = {}
+        for file, lines in BATCH_CHANNEL_FILE_LINES[batch][channel].items():
+
+            diff = lines - BATCH_FILE_MINS[batch][file]
+            if not diff :
+                PAIRED_DIFF[file] = diff
+            else:  # diff
+                UNPAIRED_DIFF[file] = diff
+            CHECKED += 1
+
+        CHANNEL_PAIRED_DIFF[channel] = PAIRED_DIFF
+        CHANNEL_UNPAIRED_DIFF[channel] = UNPAIRED_DIFF
+
+    BATCH_CHANNEL_PAIRED_DIFF[batch] = CHANNEL_PAIRED_DIFF
+    BATCH_CHANNEL_UNPAIRED_DIFF[batch] = CHANNEL_UNPAIRED_DIFF
+'''
+print("DONE.")
+println(os.linesep)
+
+# move files to a subfolder, if their line counts don't match in batch folders across channels
+println("Moving files with unpaired lines to folder (5/6):")
+println("-------------------------------------------------")
+UNPAIRED = 0
+FOLDER_TARGET = "unpaired"
+println("FOLDER: \"" + FOLDER_TARGET + "\"")
+for batch in BATCHES:
+    println("\tBATCH: \"" + batch + "\"")
+
+    for channel in CHANNELS:
+        println("\t\tCHANNEL: \"" + channel + "\"")
 
         for file, lines in BATCH_CHANNEL_FILE_LINES[batch][channel].items():
             if lines > BATCH_FILE_MINS[batch][file]:
-                BATCH_CHANNEL_FILE[batch] = {channel: file}
-
-println(os.linesep)
-print(BATCH_CHANNEL_FILE)
-
-# Remove duplicate lines in unique file names in batch folders across channels
-println("Removing duplicate lines in unique files (5/6):")
-println("-----------------------------------------------")
-for batch, channel_file in BATCH_CHANNEL_FILE.items():
-
-    for channel, file in channel_file.items():
-        fileobject = os.path.join(EXPORT_FOLDER, channel, batch, file)
-        with open(fileobject, newline='') as csvfile:
-
-            reader = csv.DictReader(csvfile, delimiter='\t')
-            id_set = set()  # create an empty set (unique entries only)
-            id_list = []  # create an empty list (duplicates possible)
-
-            for row in reader:
-                id_value = row['Cell ID']
-                id_set.add(id_value)
-                id_list.append(id_value)
-            if len(id_set) < len(id_list):
-                print("duplicate entry in: " + channel + ": " + batch + ": "+ file + ": ")
-'''
-
-for batch in BATCHES:
-
-    for channel in CHANNELS:
-
-
-        print(BATCH_FILE_LINES[batch][channel])
-
-# rewrite files to their consensus line entries across all batch folders
-println("Removing unmatched lines in files (6/6):")
-println("----------------------------------------")
-
-
-
-BATCH_FILE_LINES = {}  # file line counts by batch and channel
-for batch in BATCHES:
-    #println("BATCH: \"" + batch + "\"")
-
-    file_lines = {}  # file line counts by channel
-    for channel in CHANNELS:
-        #println("\tCHANNEL: \"" + channel + "\"")
-
-
-        for fileobject in get_files(os.path.join(EXPORT_FOLDER, channel, batch), ".txt"):
-            file = fileobject.rsplit('\\', 1)[1]
-
-            lines = 0
-            with open(file, 'r') as textfile:
-                for lines, line in enumerate(textfile):
-                    lines = lines
-
-                lines += 1
-            file_lines[file] = lines
-
-        BATCH_FILE_LINES[batch] = file_lines
-
-print(BATCH_FILE_LINES)
+                cwd_path = os.path.join(EXPORT_FOLDER, channel, batch)
+                unp_path = os.path.join(cwd_path + os.sep + FOLDER_TARGET)
+                if not os.path.exists(unp_path):
+                    os.mkdir(unp_path)
+                try:
+                    #shutil.move(os.path.join(cwd_path, unpaired_diff), os.path.join(unp_path, file))
+                    UNPAIRED += 1  # only count moved files
+                except FileNotFoundError:
+                    pass
+println("UNPAIRED: " + str(UNPAIRED) + ".")
 println(os.linesep)
 
-# rewrite files to their consensus line entries across all batch folders
-println("Removing unmatched entries in files (5/5):")
-println("------------------------------------------")
+# Compare unique cell IDs and remove unpaired lines
+println("Removing unpaired lines in unique files (6/6):")
+println("----------------------------------------------")
+REMOVED = 0
+FOLDER_TARGET = "unpaired"
+println("FOLDER: \"" + FOLDER_TARGET + "\"")
 
-# find mimimum line entries for each file (file) in each batch folder
-BATCH = {}  # minimum file line counts by channel
-for channel in CHANNELS:  # get minimum line counts for all files first
-    
-    file_mins = {}  # minimum file line counts by batch
-    for batch in BATCHES:
+for batch in BATCHES:
+    println("\tBATCH: \"" + batch + "\"")
 
-        for file, lines in BATCHS[batch].items():
-            try:
-                file_mins[file] = lines if lines < file_mins[file] else file_mins[file]
-            except KeyError:  # first file, does not exist yet
-                file_mins[file] = lines
+    for channel in CHANNELS:
+        println("\t\tCHANNEL: \"" + channel + "\"")
 
-        BATCH[batch] = file_mins
-print(BATCH)
-# find the files that contain more lines than the minimum line entries found
-UNEVEN = 0
-batch_file_minfile = {}  # csv data for minimum line entry files
-batch_file_maxfile = {}  # csv data for maximum line entry files
-for channel in CHANNELS:  # now that we know the minimum line counts, let's compare file contents
-    #println("CHANNEL: \"" + channel + "\"")
-    #print(channel)
-    for batch in BATCHES:
-        #println("\tBATCH: \"" + batch + "\"")
+        for file, lines in BATCH_CHANNEL_FILE_LINES[batch][channel].items():
+            if lines > BATCH_FILE_MINS[batch][file]:
+                
+                for temp_channel, temp_file_lines in BATCH_CHANNEL_FILE_LINES[batch].items():
 
-        #print(batch)
-        for file, lines in BATCHS[batch].items():
-            #if BATCHS[batch][file] > BATCH[batch][file]:
-            print(BATCHS[batch][file], BATCH[batch][file])
-#             if BATCHS[batch][file] > BATCH[batch][file]:
-#                 batch_file_maxfile[batch] = textfile
-#                 cwd_path = os.path.join(EXPORT_FOLDER, channel, batch)
-#                 tmp_path = os.path.join(cwd_path + os.sep + "uneven")
-#                 if not os.path.exists(tmp_path):
-#                     os.mkdir(tmp_path)
-#                 shutil.copy(os.path.join(cwd_path, file), os.path.join(tmp_path, file))
-#             else:  # BATCHS[batch][file] <= BATCH[batch][file]
-#                 batch_file_minfile[batch] = textfile
-# UNEVEN = len(batch_file_maxfile)
-# print(batch_file_minfile)
-# print(batch_file_maxfile)
-# print(UNEVEN)
-        #     print(file)
-        # for file, lines in BATCHS[batch].items():
-        #     if lines == BATCH[batch][file]:  # file line counts are different between batch folders
-        #         print("Found in:" + batch + ", File: " + file)
-        #         cwd_path = os.path.join(EXPORT_FOLDER, channel, batch)
-        #         tmp_path = os.path.join(cwd_path + os.sep + "uneven")
-        #         if not os.path.exists(tmp_path):
-        #             os.mkdir(tmp_path)
-        #         shutil.copy(os.path.join(cwd_path, file), os.path.join(tmp_path, file))
-        #         UNEVEN += 1
-            
-#println(os.linesep)
+                    for temp_file, temp_lines in temp_file_lines.items():
 
-#WAIT = input("Press ENTER to end this program.")
-'''
+                        if lines == BATCH_FILE_MINS[batch][temp_file]:
+                            par_channel = temp_channel
+                            print(par_channel)
+                            break
+
+                    break
+
+                with open(os.path.join(EXPORT_FOLDER, par_channel, batch, file), 'r') as par:  # reference file
+                    par_ids = [0 for x in range(BATCH_CHANNEL_FILE_LINES[batch][unp_channel][unp_file])]  # contains cell IDs
+                    for index, line in enumerate(par):
+                        par_ids[index] = line.split("\t")[4]
+
+                with open(os.path.join(EXPORT_FOLDER, unp_channel, batch, FOLDER_TARGET, unp_file), 'r') as unp:  # unpaired file
+                    print(os.path.join(EXPORT_FOLDER, unp_channel, batch, FOLDER_TARGET, unp_file))
+                    with open(os.path.join(EXPORT_FOLDER, unp_channel, batch, unp_file), 'w') as fix:  # fixed file
+                        print(os.path.join(EXPORT_FOLDER, unp_channel, batch, unp_file))
+                        offset = 0  #  offset for fixed file, if lines were ignored
+                        for index, line in enumerate(unp):
+                            try:
+                                unp_id = line.split("\t")[4]
+                            except IndexError:  # empty line
+                                pass
+                            if unp_id == par_ids[index + offset]:
+                                fix.write(line)
+                            else:
+                                REMOVED += 1
+                                offset = -REMOVED
+
+println("REMOVED: " + str(REMOVED) + ".")
+println(os.linesep)
+
+
+WAIT = input("Press ENTER to end this program.")
