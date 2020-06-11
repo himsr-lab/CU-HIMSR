@@ -2,22 +2,22 @@
 
 """
     Removes unmatched regions in phenoptrReports exports
-    Version:    1.1 (2020-06-09)
+    Version:    1.1 (2020-06-10)
     Author:     Christian Rickert
     Group:      Human Immune Monitoring Shared Resource (HIMSR)
                 University of Colorado, Anschutz Medical Campus
 """
 
+
 #  imports
 
-import csv
 import os
 import shutil
 import sys
 
+
 #  functions
 
-# from: http://rightfootin.blogspot.com/2006/09/more-on-python-flatten.html
 def flatten(deep_list=None):
     """ Returns a flattened list with elements from (deep) lists or tuples """
     flat_list = []
@@ -27,6 +27,17 @@ def flatten(deep_list=None):
         else:
             flat_list.append(item)
     return flat_list
+
+def get_cell_ids(path='/home/user/', length=None):
+    """ Returns the cell IDs of a file as a list with given length. """
+    with open(path, 'r') as par:
+        cell_ids = [0 for x in range(length)]
+        try:
+            for index, line in enumerate(par):
+                cell_ids[index] = line.split("\t")[4]
+        except IndexError:
+            pass
+    return cell_ids
 
 def get_files(path='/home/user/', pattern='', recursive=False):
     """ Returns all files in path matching the pattern. """
@@ -56,21 +67,52 @@ def get_folders(path='/home/user/', pattern='', recursive=False):
                             get_folders(path=fileobject.path, pattern=pattern, recursive=recursive))
     return flatten(folders)
 
+def get_line_counts(path='/home/user/'):
+    """ Returns the number of lines counted in a file. """
+    with open(path, 'r') as textfile:
+        line_count = 0
+
+        for lines, line in enumerate(textfile):
+            line_count = lines
+
+    line_count += 1
+    return line_count
+
 def println(string=""):
     ''' Prints a string and forces immediate output. '''
     print(string)
     sys.stdout.flush()
 
+def sync_cell_ids(in_path='/home/user/', cell_ids=None, out_path='/home/user/'):
+    ''' Synchronizes the lines of a file based on the list of cell IDs from a reference
+        and writes the synchronized content to a file. Returns the number of removed lines. '''
+    with open(in_path, 'r') as in_file:  # non-synchronized file
+        with open(out_path, 'w') as out_file:  # synchronized file
+            offset = 0  #  offset to synced file, if lines were skipped
+
+            for index, line in enumerate(in_file):
+                try:
+                    check_id = line.split("\t")[4]
+                except IndexError:
+                    pass  # empty line or list too short
+                finally:
+                    if check_id == cell_ids[index - offset]:
+                        out_file.write(line)
+                    else:
+                        offset += 1
+
+    return offset
+
+
 #  constants & variables
 
-# assuming: export > channel > batch > file
 EXPORT_FOLDER = r"C:\Users\Christian Rickert\Desktop\export"
-#EXPORT_FOLDER = r"C:\Users\Christian Rickert\Documents\GitHub\phenoptr-fixes\export"
-#EXPORT_FOLDER = r"\\Micro-LS7.ucdenver.pvt\HI3-Microscope\Data\Vectra3\SentiBio\Panel  63-2 EXPORT"
 CHANNELS = []
 BATCHES = []
 
-# retrieve unique channel and batch folder names
+# The folder structure, i.e. the name of the channel and batch folders needs to be
+# consistent across the project.
+
 println(os.linesep)
 println("Retrieving folder lists (1/6):")
 println("------------------------------")
@@ -79,7 +121,7 @@ for channel_folder in get_folders(EXPORT_FOLDER):
     println("\tCHANNEL: \"" + channel_folder + "\"")
     channel = channel_folder.rsplit('\\', 1)[1]
     if channel not in CHANNELS:  # unique names only
-        CHANNELS.append(channel) 
+        CHANNELS.append(channel)
 
     for batch_folder in get_folders(channel_folder):
         batch = batch_folder.rsplit('\\', 1)[1]
@@ -92,7 +134,9 @@ BATCHES.sort()
 println("CHANNELS: " + str(len(CHANNELS)) + ", BATCHES: " + str(len(BATCHES)) + ".")
 println(os.linesep)
 
-# count unique file names in batch folders across channels
+# We are expecting to find the same files matching the file target pattern, see below,
+# in each of the channel and batch folders, respectively.
+
 println("Counting unique file names (2/6):")
 println("---------------------------------")
 FILE_TARGET = "_seg_data.txt"
@@ -106,8 +150,8 @@ for batch in BATCHES:
     for channel in CHANNELS:
         println("\t\tCHANNEL: \"" + channel + "\"")
 
-        for fileobject in get_files(os.path.join(EXPORT_FOLDER, channel, batch), FILE_TARGET):
-            file = fileobject.rsplit('\\', 1)[1]
+        for match in get_files(os.path.join(EXPORT_FOLDER, channel, batch), FILE_TARGET):
+            file = match.rsplit('\\', 1)[1]
             if file in FILE_COUNTS:
                 FILE_COUNTS[file] += 1  # increment key value
             else:  # file not in list
@@ -115,11 +159,13 @@ for batch in BATCHES:
             UNIQUE += 1
 
     BATCH_FILE_COUNTS[batch] = FILE_COUNTS
-print("UNIQUE: " + str(UNIQUE) + ".")
 
+print("UNIQUE FILES: " + str(UNIQUE) + ".")
 println(os.linesep)
 
-# move files to a subfolder, if they don't exist in batch folders across channels
+# Files that match the pattern, but are not consistent across the folder structure,
+# are moved into a subfolder within the batch folder of a given channnel.
+
 println("Moving unmatched files to folder (3/6):")
 println("---------------------------------------")
 UNMATCHED = 0
@@ -134,21 +180,26 @@ for channel in CHANNELS:
 
         for file, counts in BATCH_FILE_COUNTS[batch].items():
             if counts < CHANNEL_COUNT:  # file does not exist in all batch folders
-                cwd_path = os.path.join(EXPORT_FOLDER, channel, batch)
-                unm_path = os.path.join(cwd_path + os.sep + FOLDER_TARGET)
-                if not os.path.exists(unm_path):
-                    os.mkdir(unm_path)
-                try:
-                    shutil.move(os.path.join(cwd_path, file), os.path.join(unm_path, file))
-                    UNMATCHED += 1  # only count moved files
-                except FileNotFoundError:
-                    pass
-                pass
+                mat_path = os.path.join(EXPORT_FOLDER, channel, batch)
+                mat_file = os.path.join(mat_path, file)
+                if os.path.exists(mat_file):
+                    unm_path = os.path.join(mat_path + os.sep + FOLDER_TARGET)
+                    if not os.path.exists(unm_path):
+                        os.mkdir(unm_path)
+                    try:
+                        shutil.move(os.path.join(mat_path, file), os.path.join(unm_path, file))
+                    except FileNotFoundError:
+                        pass
+                    else:  # success
+                        print("\t\t\tUNMATCHED: " + os.path.join(mat_path, file))
+                        UNMATCHED += 1  # only count moved files
 
-println("UNMATCHED: " + str(UNMATCHED) + ".")
+println("MOVED FILES: " + str(UNMATCHED) + ".")
 println(os.linesep)
 
-# count lines numbers in unique file names in batch folders across channels
+# We are checking the remaining (consistent) files for the minimum number of lines present
+# throughout batches and channels, respectively. Counting lines is faster than comparing lines.
+
 println("Checking line counts in unique files (4/6):")
 println("-------------------------------------------")
 CHECKED = 0
@@ -158,66 +209,38 @@ println("FILE: \"" + FILE_TARGET + "\"")
 for batch in BATCHES:
     println("\tBATCH: \"" + batch + "\"")
 
+    FILE_MINS = {}  # file line (minimum) count by batch
     CHANNEL_FILE_LINES = {}  # file line (absolute) count by channel
     for channel in CHANNELS:
         println("\t\tCHANNEL: \"" + channel + "\"")
 
-
-        FILE_MINS = {}  # file line (minimum) count within channel
         FILE_LINES = {}  # file line (absolute) count within channel
-        for fileobject in get_files(os.path.join(EXPORT_FOLDER, channel, batch), FILE_TARGET):
-            file = fileobject.rsplit('\\', 1)[1]
+        for match in get_files(os.path.join(EXPORT_FOLDER, channel, batch), FILE_TARGET):
             line_count = 0
-            with open(fileobject, 'r') as textfile:
-
-                for lines, line in enumerate(textfile):
-                    line_count = lines
-            
-            line_count += 1 
+            file = match.rsplit('\\', 1)[1]
+            line_count = get_line_counts(match)
+            FILE_LINES[file] = line_count
             if file in FILE_MINS:
                 FILE_MINS[file] = line_count if line_count < FILE_MINS[file] else FILE_MINS[file]
             else:  # file not in list
                 FILE_MINS[file] = line_count
-            FILE_LINES[file] = line_count
             CHECKED += 1
+
         CHANNEL_FILE_LINES[channel] = FILE_LINES
-   
+
     BATCH_FILE_MINS[batch] = FILE_MINS
     BATCH_CHANNEL_FILE_LINES[batch] = CHANNEL_FILE_LINES
-'''
-BATCH_CHANNEL_PAIRED_DIFF = {}  # these file serve as a reference
-BATCH_CHANNEL_UNPAIRED_DIFF = {}  # these files need to be checked
-for batch in BATCHES:
 
-    CHANNEL_PAIRED_DIFF = {}
-    CHANNEL_UNPAIRED_DIFF = {}
-    for channel in CHANNELS:
-
-        PAIRED_DIFF = {}
-        UNPAIRED_DIFF = {}
-        for file, lines in BATCH_CHANNEL_FILE_LINES[batch][channel].items():
-
-            diff = lines - BATCH_FILE_MINS[batch][file]
-            if not diff :
-                PAIRED_DIFF[file] = diff
-            else:  # diff
-                UNPAIRED_DIFF[file] = diff
-            CHECKED += 1
-
-        CHANNEL_PAIRED_DIFF[channel] = PAIRED_DIFF
-        CHANNEL_UNPAIRED_DIFF[channel] = UNPAIRED_DIFF
-
-    BATCH_CHANNEL_PAIRED_DIFF[batch] = CHANNEL_PAIRED_DIFF
-    BATCH_CHANNEL_UNPAIRED_DIFF[batch] = CHANNEL_UNPAIRED_DIFF
-'''
-print("DONE.")
+print("CHECKED FILES: " + str(CHECKED))
 println(os.linesep)
 
-# move files to a subfolder, if their line counts don't match in batch folders across channels
-println("Moving files with unpaired lines to folder (5/6):")
-println("-------------------------------------------------")
-UNPAIRED = 0
-FOLDER_TARGET = "unpaired"
+# We can now identify files which have more lines than the consensus (minimum) line count.
+# Let's backup those files in a subfolder within the batch folder of a given channnel.
+
+println("Moving files with unbalanced lines to folder (5/6):")
+println("---------------------------------------------------")
+UNBALANCED = 0
+FOLDER_TARGET = "unbalanced"
 println("FOLDER: \"" + FOLDER_TARGET + "\"")
 for batch in BATCHES:
     println("\tBATCH: \"" + batch + "\"")
@@ -226,24 +249,33 @@ for batch in BATCHES:
         println("\t\tCHANNEL: \"" + channel + "\"")
 
         for file, lines in BATCH_CHANNEL_FILE_LINES[batch][channel].items():
-            if lines > BATCH_FILE_MINS[batch][file]:
-                cwd_path = os.path.join(EXPORT_FOLDER, channel, batch)
-                unp_path = os.path.join(cwd_path + os.sep + FOLDER_TARGET)
-                if not os.path.exists(unp_path):
-                    os.mkdir(unp_path)
+            try:  # avoid exception, when unmatched files are not removed (test run)
+                mins = BATCH_FILE_MINS[batch][file]
+            except KeyError:
+                pass
+            if lines > mins:
+                bal_path = os.path.join(EXPORT_FOLDER, channel, batch)
+                unb_path = os.path.join(bal_path + os.sep + FOLDER_TARGET)
+                if not os.path.exists(unb_path):
+                    os.mkdir(unb_path)
                 try:
-                    #shutil.move(os.path.join(cwd_path, unpaired_diff), os.path.join(unp_path, file))
-                    UNPAIRED += 1  # only count moved files
+                    shutil.move(os.path.join(bal_path, file), os.path.join(unb_path, file))
                 except FileNotFoundError:
                     pass
-println("UNPAIRED: " + str(UNPAIRED) + ".")
+                else:
+                    print("\t\t\tUNBALANCED: " + os.path.join(bal_path, file))
+                    UNBALANCED += 1  # only count moved files
+
+println("MOVED FILES: " + str(UNBALANCED) + ".")
 println(os.linesep)
 
-# Compare unique cell IDs and remove unpaired lines
-println("Removing unpaired lines in unique files (6/6):")
-println("----------------------------------------------")
+# We can now remove surplus lines from the backup files by comparing their Cell IDs with the
+# corresponding consensus Cell IDs. However, we only compare against a single reference file.
+
+println("Removing unbalanced lines in unique files (6/6):")
+println("------------------------------------------------")
 REMOVED = 0
-FOLDER_TARGET = "unpaired"
+FOLDER_TARGET = "unbalanced"
 println("FOLDER: \"" + FOLDER_TARGET + "\"")
 
 for batch in BATCHES:
@@ -252,43 +284,31 @@ for batch in BATCHES:
     for channel in CHANNELS:
         println("\t\tCHANNEL: \"" + channel + "\"")
 
-        for file, lines in BATCH_CHANNEL_FILE_LINES[batch][channel].items():
-            if lines > BATCH_FILE_MINS[batch][file]:
-                
-                for temp_channel, temp_file_lines in BATCH_CHANNEL_FILE_LINES[batch].items():
+        # loop: get all files with unbalanced lines to fix
+        for unb_file, unb_lines in BATCH_CHANNEL_FILE_LINES[batch][channel].items():
+            try:  # avoid exception, when unmatched files are not removed (test run)
+                bal_lines = BATCH_FILE_MINS[batch][unb_file]
+            except KeyError:
+                bal_lines = float("inf")
+            if unb_lines > bal_lines:
 
-                    for temp_file, temp_lines in temp_file_lines.items():
+                # loop: get the first reference file with paired lines to synchronize with
+                for ref_channel, ref_file_lines in BATCH_CHANNEL_FILE_LINES[batch].items():
 
-                        if lines == BATCH_FILE_MINS[batch][temp_file]:
-                            par_channel = temp_channel
-                            print(par_channel)
-                            break
+                    for ref_file, ref_lines in ref_file_lines.items():
+                        if ref_lines == bal_lines:
+                            break  # break out of the inner reference loop
 
-                    break
+                    break  # break out of the outer reference loop
 
-                with open(os.path.join(EXPORT_FOLDER, par_channel, batch, file), 'r') as par:  # reference file
-                    par_ids = [0 for x in range(BATCH_CHANNEL_FILE_LINES[batch][unp_channel][unp_file])]  # contains cell IDs
-                    for index, line in enumerate(par):
-                        par_ids[index] = line.split("\t")[4]
+                bal_path = os.path.join(EXPORT_FOLDER, channel, batch, unb_file)
+                ref_path = os.path.join(EXPORT_FOLDER, ref_channel, batch, ref_file)
+                cell_ids = get_cell_ids(path=ref_path, length=unb_lines)
+                unb_path = os.path.join(EXPORT_FOLDER, channel, batch, FOLDER_TARGET, unb_file)
+                REMOVED += sync_cell_ids(in_path=unb_path, cell_ids=cell_ids, out_path=bal_path)
+                print("\t\t\tFIXED: " + bal_path)
 
-                with open(os.path.join(EXPORT_FOLDER, unp_channel, batch, FOLDER_TARGET, unp_file), 'r') as unp:  # unpaired file
-                    print(os.path.join(EXPORT_FOLDER, unp_channel, batch, FOLDER_TARGET, unp_file))
-                    with open(os.path.join(EXPORT_FOLDER, unp_channel, batch, unp_file), 'w') as fix:  # fixed file
-                        print(os.path.join(EXPORT_FOLDER, unp_channel, batch, unp_file))
-                        offset = 0  #  offset for fixed file, if lines were ignored
-                        for index, line in enumerate(unp):
-                            try:
-                                unp_id = line.split("\t")[4]
-                            except IndexError:  # empty line
-                                pass
-                            if unp_id == par_ids[index + offset]:
-                                fix.write(line)
-                            else:
-                                REMOVED += 1
-                                offset = -REMOVED
-
-println("REMOVED: " + str(REMOVED) + ".")
+println("REMOVED LINES: " + str(REMOVED) + ".")
 println(os.linesep)
-
 
 WAIT = input("Press ENTER to end this program.")
