@@ -2,7 +2,7 @@
 
 """
     Removes unmatched regions in phenoptrReports exports
-    Version:    1.1 (2020-06-10)
+    Version:    1.0 (2020-06-29)
     Author:     Christian Rickert
     Group:      Human Immune Monitoring Shared Resource (HIMSR)
                 University of Colorado, Anschutz Medical Campus
@@ -31,13 +31,13 @@ def flatten(deep_list=None):
 def get_cell_ids(path='/home/user/', length=None):
     """ Returns the cell IDs of a file as a list with given length. """
     with open(path, 'r') as par:
-        cell_ids = [0 for x in range(length)]
+        match_ids = [0 for x in range(length)]
         try:
             for index, line in enumerate(par):
-                cell_ids[index] = line.split("\t")[4]
+                match_ids[index] = line.split("\t")[4]
         except IndexError:
             pass
-    return cell_ids
+    return match_ids
 
 def get_files(path='/home/user/', pattern='', recursive=False):
     """ Returns all files in path matching the pattern. """
@@ -70,20 +70,20 @@ def get_folders(path='/home/user/', pattern='', recursive=False):
 def get_line_counts(path='/home/user/'):
     """ Returns the number of lines counted in a file. """
     with open(path, 'r') as textfile:
-        line_count = 0
+        count = 0
 
-        for lines, line in enumerate(textfile):
-            line_count = lines
+        for line, _content in enumerate(textfile):
+            count = line
 
-    line_count += 1
-    return line_count
+    count += 1
+    return count
 
 def println(string=""):
     ''' Prints a string and forces immediate output. '''
     print(string)
     sys.stdout.flush()
 
-def sync_cell_ids(in_path='/home/user/', cell_ids=None, out_path='/home/user/'):
+def sync_cell_ids(in_path='/home/user/', match_ids=None, out_path='/home/user/'):
     ''' Synchronizes the lines of a file based on the list of cell IDs from a reference
         and writes the synchronized content to a file. Returns the number of removed lines. '''
     with open(in_path, 'r') as in_file:  # non-synchronized file
@@ -96,7 +96,7 @@ def sync_cell_ids(in_path='/home/user/', cell_ids=None, out_path='/home/user/'):
                 except IndexError:
                     pass  # empty line or list too short
                 finally:
-                    if check_id == cell_ids[index - offset]:
+                    if check_id == match_ids[index - offset]:
                         out_file.write(line)
                     else:
                         offset += 1
@@ -106,7 +106,7 @@ def sync_cell_ids(in_path='/home/user/', cell_ids=None, out_path='/home/user/'):
 
 #  constants & variables
 
-EXPORT_FOLDER = r"C:\Users\Christian Rickert\Desktop\export"
+EXPORT_FOLDER = r"\export"
 CHANNELS = []
 BATCHES = []
 
@@ -117,6 +117,7 @@ println(os.linesep)
 println("Retrieving folder lists (1/6):")
 println("------------------------------")
 println("EXPORT: \"" + EXPORT_FOLDER.rsplit('\\', 1)[1] + "\"")
+
 for channel_folder in get_folders(EXPORT_FOLDER):
     println("\tCHANNEL: \"" + channel_folder + "\"")
     channel = channel_folder.rsplit('\\', 1)[1]
@@ -143,6 +144,7 @@ FILE_TARGET = "_seg_data.txt"
 println("FILE: \"" + FILE_TARGET + "\"")
 UNIQUE = 0
 BATCH_FILE_COUNTS = {}  # file counts by batch
+
 for batch in BATCHES:
     println("\tBATCH: \"" + batch + "\"")
 
@@ -172,6 +174,7 @@ UNMATCHED = 0
 CHANNEL_COUNT = len(CHANNELS)
 FOLDER_TARGET = "unmatched"
 println("FOLDER: \"" + FOLDER_TARGET + "\"")
+
 for channel in CHANNELS:
     println("\tCHANNEL: \"" + channel + "\"")
 
@@ -197,15 +200,17 @@ for channel in CHANNELS:
 println("MOVED FILES: " + str(UNMATCHED) + ".")
 println(os.linesep)
 
-# We are checking the remaining (consistent) files for the minimum number of lines present
-# throughout batches and channels, respectively. Counting lines is faster than comparing lines.
+# We are checking the merge files for the minimum number of lines present throughout batches and
+# channels, respectively. Counting lines is faster than comparing lines.
 
-println("Checking line counts in unique files (4/6):")
-println("-------------------------------------------")
+println("Checking line counts in merge files (4/6):")
+println("------------------------------------------")
+FILE_TARGET = "Merge_cell_seg_data.txt"
+println("FILE: \"" + FILE_TARGET + "\"")
 CHECKED = 0
 BATCH_FILE_MINS = {}  # file line (minimum) counts by batch
 BATCH_CHANNEL_FILE_LINES = {}  # file line (actual) counts by batch and channel
-println("FILE: \"" + FILE_TARGET + "\"")
+
 for batch in BATCHES:
     println("\tBATCH: \"" + batch + "\"")
 
@@ -234,14 +239,15 @@ for batch in BATCHES:
 print("CHECKED FILES: " + str(CHECKED))
 println(os.linesep)
 
-# We can now identify files which have more lines than the consensus (minimum) line count.
-# Let's backup those files in a subfolder within the batch folder of a given channnel.
+# We can now identify merge files which have more lines than the consensus (minimum) line count.
+# Let's also backup those merge files in a subfolder within the batch folder of a given channnel.
 
-println("Moving files with unbalanced lines to folder (5/6):")
-println("---------------------------------------------------")
+println("Moving merge files with unbalanced lines to folder (5/6):")
+println("---------------------------------------------------------")
 UNBALANCED = 0
 FOLDER_TARGET = "unbalanced"
 println("FOLDER: \"" + FOLDER_TARGET + "\"")
+
 for batch in BATCHES:
     println("\tBATCH: \"" + batch + "\"")
 
@@ -272,7 +278,7 @@ println(os.linesep)
 # We can now remove surplus lines from the backup files by comparing their Cell IDs with the
 # corresponding consensus Cell IDs. However, we only compare against a single reference file.
 
-println("Removing unbalanced lines in unique files (6/6):")
+println("Removing unbalanced lines in merge files (6/6):")
 println("------------------------------------------------")
 REMOVED = 0
 FOLDER_TARGET = "unbalanced"
@@ -290,6 +296,8 @@ for batch in BATCHES:
                 bal_lines = BATCH_FILE_MINS[batch][unb_file]
             except KeyError:
                 bal_lines = float("inf")
+            ref_channel = ""
+            ref_file = ""
             if unb_lines > bal_lines:
 
                 # loop: get the first reference file with paired lines to synchronize with
@@ -301,11 +309,16 @@ for batch in BATCHES:
 
                     break  # break out of the outer reference loop
 
+                # target for balanced file
                 bal_path = os.path.join(EXPORT_FOLDER, channel, batch, unb_file)
+                # reference for balanced file
                 ref_path = os.path.join(EXPORT_FOLDER, ref_channel, batch, ref_file)
+                # cell IDs to compare from reference
                 cell_ids = get_cell_ids(path=ref_path, length=unb_lines)
+                # source for unbalanced file
                 unb_path = os.path.join(EXPORT_FOLDER, channel, batch, FOLDER_TARGET, unb_file)
-                REMOVED += sync_cell_ids(in_path=unb_path, cell_ids=cell_ids, out_path=bal_path)
+                # remove unbalanced lines and write balanced file
+                REMOVED += sync_cell_ids(in_path=unb_path, match_ids=cell_ids, out_path=bal_path)
                 print("\t\t\tFIXED: " + bal_path)
 
 println("REMOVED LINES: " + str(REMOVED) + ".")
