@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
 """
-    Removes unmatched regions in phenoptrReports exports
+    Name:       phenoptrReports_consolidation_fix
     Version:    1.0 (2020-06-29)
     Author:     Christian Rickert
     Group:      Human Immune Monitoring Shared Resource (HIMSR)
                 University of Colorado, Anschutz Medical Campus
+    Comment:    Removes unmatched regions and cells from inForm
 """
 
 
