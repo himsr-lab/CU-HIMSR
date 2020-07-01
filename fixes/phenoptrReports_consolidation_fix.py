@@ -2,7 +2,7 @@
 
 """
     Name:       phenoptrReports_consolidation_fix
-    Version:    1.0 (2020-06-29)
+    Version:    1.0 (2020-06-30)
     Author:     Christian Rickert
     Group:      Human Immune Monitoring Shared Resource (HIMSR)
                 University of Colorado, Anschutz Medical Campus
@@ -107,7 +107,9 @@ def sync_cell_ids(in_path='/home/user/', match_ids=None, out_path='/home/user/')
 
 #  constants & variables
 
-EXPORT_FOLDER = r"\export"
+EXPORT_FOLDER = r".\export"
+FILE_TARGET = "_cell_seg_data.txt"
+MERGE_FILE = "Merge_cell_seg_data.txt"
 CHANNELS = []
 BATCHES = []
 
@@ -141,10 +143,10 @@ println(os.linesep)
 
 println("Counting unique file names (2/6):")
 println("---------------------------------")
-FILE_TARGET = "_seg_data.txt"
-println("FILE: \"" + FILE_TARGET + "\"")
-UNIQUE = 0
+println("FILE: \"*" + FILE_TARGET + "\"")
+UNIQUE_NAMES = 0
 BATCH_FILE_COUNTS = {}  # file counts by batch
+BATCH_COUNT = len(BATCHES)
 
 for batch in BATCHES:
     println("\tBATCH: \"" + batch + "\"")
@@ -159,11 +161,14 @@ for batch in BATCHES:
                 FILE_COUNTS[file] += 1  # increment key value
             else:  # file not in list
                 FILE_COUNTS[file] = 1  # add key: value pair
-            UNIQUE += 1
-
+    
     BATCH_FILE_COUNTS[batch] = FILE_COUNTS
 
-print("UNIQUE FILES: " + str(UNIQUE) + ".")
+    for file, counts in BATCH_FILE_COUNTS[batch].items():
+        if counts == BATCH_COUNT:
+            UNIQUE_NAMES += 1
+
+print("UNIQUE NAMES: " + str(UNIQUE_NAMES) + ".")
 println(os.linesep)
 
 # Files that match the pattern, but are not consistent across the folder structure,
@@ -171,7 +176,7 @@ println(os.linesep)
 
 println("Moving unmatched files to folder (3/6):")
 println("---------------------------------------")
-UNMATCHED = 0
+UNMATCHED_FILES = 0
 CHANNEL_COUNT = len(CHANNELS)
 FOLDER_TARGET = "unmatched"
 println("FOLDER: \"" + FOLDER_TARGET + "\"")
@@ -195,10 +200,10 @@ for channel in CHANNELS:
                     except FileNotFoundError:
                         pass
                     else:  # success
-                        print("\t\t\tUNMATCHED: " + os.path.join(mat_path, file))
-                        UNMATCHED += 1  # only count moved files
+                        print("\t\t\tFILE: \"" + os.path.join(mat_path, file) + "\"")
+                        UNMATCHED_FILES += 1  # only count moved files
 
-println("MOVED FILES: " + str(UNMATCHED) + ".")
+println("UNMATCHED FILES: " + str(UNMATCHED_FILES) + ".")
 println(os.linesep)
 
 # We are checking the merge files for the minimum number of lines present throughout batches and
@@ -206,9 +211,9 @@ println(os.linesep)
 
 println("Checking line counts in merge files (4/6):")
 println("------------------------------------------")
-FILE_TARGET = "Merge_cell_seg_data.txt"
-println("FILE: \"" + FILE_TARGET + "\"")
-CHECKED = 0
+FILE_TARGET = MERGE_FILE
+println("FILE: \"*" + FILE_TARGET + "\"")
+CHECKED_FILES = 0
 BATCH_FILE_MINS = {}  # file line (minimum) counts by batch
 BATCH_CHANNEL_FILE_LINES = {}  # file line (actual) counts by batch and channel
 
@@ -230,14 +235,14 @@ for batch in BATCHES:
                 FILE_MINS[file] = line_count if line_count < FILE_MINS[file] else FILE_MINS[file]
             else:  # file not in list
                 FILE_MINS[file] = line_count
-            CHECKED += 1
+            CHECKED_FILES += 1
 
         CHANNEL_FILE_LINES[channel] = FILE_LINES
 
     BATCH_FILE_MINS[batch] = FILE_MINS
     BATCH_CHANNEL_FILE_LINES[batch] = CHANNEL_FILE_LINES
 
-print("CHECKED FILES: " + str(CHECKED))
+print("CHECKED FILES: " + str(CHECKED_FILES))
 println(os.linesep)
 
 # We can now identify merge files which have more lines than the consensus (minimum) line count.
@@ -245,7 +250,7 @@ println(os.linesep)
 
 println("Moving merge files with unbalanced lines to folder (5/6):")
 println("---------------------------------------------------------")
-UNBALANCED = 0
+UNBALANCED_FILES = 0
 FOLDER_TARGET = "unbalanced"
 println("FOLDER: \"" + FOLDER_TARGET + "\"")
 
@@ -270,10 +275,10 @@ for batch in BATCHES:
                 except FileNotFoundError:
                     pass
                 else:
-                    print("\t\t\tUNBALANCED: " + os.path.join(bal_path, file))
-                    UNBALANCED += 1  # only count moved files
+                    print("\t\t\tFILE: \"" + os.path.join(bal_path, file) + "\"")
+                    UNBALANCED_FILES += 1  # only count moved files
 
-println("MOVED FILES: " + str(UNBALANCED) + ".")
+println("UNBALANCED FILES: " + str(UNBALANCED_FILES) + ".")
 println(os.linesep)
 
 # We can now remove surplus lines from the backup files by comparing their Cell IDs with the
@@ -281,8 +286,7 @@ println(os.linesep)
 
 println("Removing unbalanced lines in merge files (6/6):")
 println("------------------------------------------------")
-REMOVED = 0
-FOLDER_TARGET = "unbalanced"
+UNBALANCED_LINES = 0
 println("FOLDER: \"" + FOLDER_TARGET + "\"")
 
 for batch in BATCHES:
@@ -307,8 +311,9 @@ for batch in BATCHES:
                     for ref_file, ref_lines in ref_file_lines.items():
                         if ref_lines == bal_lines:
                             break  # break out of the inner reference loop
-
-                    break  # break out of the outer reference loop
+                    
+                    if ref_lines == bal_lines:  # redundant, but required
+                        break  # break out of the outer reference loop
 
                 # target for balanced file
                 bal_path = os.path.join(EXPORT_FOLDER, channel, batch, unb_file)
@@ -319,10 +324,10 @@ for batch in BATCHES:
                 # source for unbalanced file
                 unb_path = os.path.join(EXPORT_FOLDER, channel, batch, FOLDER_TARGET, unb_file)
                 # remove unbalanced lines and write balanced file
-                REMOVED += sync_cell_ids(in_path=unb_path, match_ids=cell_ids, out_path=bal_path)
-                print("\t\t\tFIXED: " + bal_path)
+                UNBALANCED_LINES += sync_cell_ids(in_path=unb_path, match_ids=cell_ids, out_path=bal_path)
+                print("\t\t\tFILE: \"" + bal_path + "\"")
 
-println("REMOVED LINES: " + str(REMOVED) + ".")
+println("UNBALANCED LINES: " + str(UNBALANCED_LINES) + ".")
 println(os.linesep)
 
 WAIT = input("Press ENTER to end this program.")
