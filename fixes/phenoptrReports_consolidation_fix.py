@@ -2,7 +2,7 @@
 
 """
     Name:       phenoptrReports_consolidation_fix
-    Version:    1.0 (2020-06-30)
+    Version:    1.0 (2020-07-16)
     Author:     Christian Rickert
     Group:      Human Immune Monitoring Shared Resource (HIMSR)
                 University of Colorado, Anschutz Medical Campus
@@ -146,7 +146,7 @@ println("---------------------------------")
 println("FILE: \"*" + FILE_TARGET + "\"")
 UNIQUE_NAMES = 0
 BATCH_FILE_COUNTS = {}  # file counts by batch
-BATCH_COUNT = len(BATCHES)
+CHANNEL_COUNT = len(CHANNELS)
 
 for batch in BATCHES:
     println("\tBATCH: \"" + batch + "\"")
@@ -165,7 +165,7 @@ for batch in BATCHES:
     BATCH_FILE_COUNTS[batch] = FILE_COUNTS
 
     for file, counts in BATCH_FILE_COUNTS[batch].items():
-        if counts == BATCH_COUNT:
+        if counts == CHANNEL_COUNT:
             UNIQUE_NAMES += 1
 
 print("UNIQUE NAMES: " + str(UNIQUE_NAMES) + ".")
@@ -177,7 +177,6 @@ println(os.linesep)
 println("Moving unmatched files to folder (3/6):")
 println("---------------------------------------")
 UNMATCHED_FILES = 0
-CHANNEL_COUNT = len(CHANNELS)
 FOLDER_TARGET = "unmatched"
 println("FOLDER: \"" + FOLDER_TARGET + "\"")
 
