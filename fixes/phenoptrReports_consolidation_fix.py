@@ -2,7 +2,7 @@
 
 """
     Name:       phenoptrReports_consolidation_fix
-    Version:    1.0 (2020-07-16)
+    Version:    1.1 (2020-07-16)
     Author:     Christian Rickert
     Group:      Human Immune Monitoring Shared Resource (HIMSR)
                 University of Colorado, Anschutz Medical Campus
