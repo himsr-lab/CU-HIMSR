@@ -2,7 +2,7 @@
 
 """
     Name:       phenoptrReports_consolidation_fix
-    Version:    1.0 (2020-07-16)
+    Version:    1.0 (2020-08-28)
     Author:     Christian Rickert
     Group:      Human Immune Monitoring Shared Resource (HIMSR)
                 University of Colorado, Anschutz Medical Campus
@@ -70,23 +70,23 @@ def get_folders(path='/home/user/', pattern='', recursive=False):
 
 def get_line_counts(path='/home/user/'):
     """ Returns the number of lines counted in a file. """
-    with open(path, 'r') as textfile:
+    with open(path, 'r') as text_file:
         count = 0
 
-        for line, _content in enumerate(textfile):
+        for line, _content in enumerate(text_file):
             count = line
 
     count += 1
     return count
 
 def println(string=""):
-    ''' Prints a string and forces immediate output. '''
+    """ Prints a string and forces immediate output. """
     print(string)
     sys.stdout.flush()
 
 def sync_cell_ids(in_path='/home/user/', match_ids=None, out_path='/home/user/'):
-    ''' Synchronizes the lines of a file based on the list of cell IDs from a reference
-        and writes the synchronized content to a file. Returns the number of removed lines. '''
+    """ Synchronizes the lines of a file based on the list of cell IDs from a reference
+        and writes the synchronized content to a file. Returns the number of removed lines. """
     with open(in_path, 'r') as in_file:  # non-synchronized file
         with open(out_path, 'w') as out_file:  # synchronized file
             offset = 0  #  offset to synced file, if lines were skipped
@@ -161,7 +161,7 @@ for batch in BATCHES:
                 FILE_COUNTS[file] += 1  # increment key value
             else:  # file not in list
                 FILE_COUNTS[file] = 1  # add key: value pair
-    
+
     BATCH_FILE_COUNTS[batch] = FILE_COUNTS
 
     for file, counts in BATCH_FILE_COUNTS[batch].items():
@@ -310,7 +310,7 @@ for batch in BATCHES:
                     for ref_file, ref_lines in ref_file_lines.items():
                         if ref_lines == bal_lines:
                             break  # break out of the inner reference loop
-                    
+
                     if ref_lines == bal_lines:  # redundant, but required
                         break  # break out of the outer reference loop
 
