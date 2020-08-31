@@ -2,7 +2,7 @@
 
 """
     Name:       phenoptrReports_consolidation_fix
-    Version:    1.0 (2020-08-28)
+    Version:    1.0 (2020-08-31)
     Author:     Christian Rickert
     Group:      Human Immune Monitoring Shared Resource (HIMSR)
                 University of Colorado, Anschutz Medical Campus
@@ -302,6 +302,7 @@ for batch in BATCHES:
                 bal_lines = float("inf")
             ref_channel = ""
             ref_file = ""
+            ref_lines = 0
             if unb_lines > bal_lines:
 
                 # loop: get the first reference file with paired lines to synchronize with
@@ -311,7 +312,7 @@ for batch in BATCHES:
                         if ref_lines == bal_lines:
                             break  # break out of the inner reference loop
 
-                    if ref_lines == bal_lines:  # redundant, but required
+                    if ref_lines == bal_lines:  # redundant, but required to force second break
                         break  # break out of the outer reference loop
 
                 # target for balanced file
@@ -323,7 +324,8 @@ for batch in BATCHES:
                 # source for unbalanced file
                 unb_path = os.path.join(EXPORT_FOLDER, channel, batch, FOLDER_TARGET, unb_file)
                 # remove unbalanced lines and write balanced file
-                UNBALANCED_LINES += sync_cell_ids(in_path=unb_path, match_ids=cell_ids, out_path=bal_path)
+                UNBALANCED_LINES += sync_cell_ids(in_path=unb_path, match_ids=cell_ids,
+                                                  out_path=bal_path)
                 print("\t\t\tFILE: \"" + bal_path + "\"")
 
 println("UNBALANCED LINES: " + str(UNBALANCED_LINES) + ".")
