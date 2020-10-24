@@ -6,7 +6,8 @@
     Author:     Christian Rickert
     Group:      Human Immune Monitoring Shared Resource (HIMSR)
                 University of Colorado, Anschutz Medical Campus
-    Comment:    Removes unmatched regions and cells from inForm
+    Comment:    Removes unmatched regions (files) and cells (lines)
+                from inForm export data.
 """
 
 
