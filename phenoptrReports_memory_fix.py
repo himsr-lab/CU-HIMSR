@@ -14,7 +14,6 @@
 #  imports
 
 import os
-import shutil
 import sys
 
 
@@ -63,6 +62,8 @@ def unmerge_data(in_path='/home/user/', out_path='export'):
             if index == 0: # header
                 headers = line
             else: # data
+                # "Merge_cell_seg_data" needs to be removed from the file name
+                # "Scan1_[1,1]_cell_seg_data.txt" needs to be the end of the file name
                 current_label = line.split("\t")[1].split("_")[0]  # sample name
 
                 with open(out_path + os.path.sep + name + " - " + current_label + ".txt", 'a') as out_file:
@@ -101,7 +102,7 @@ for file in get_files(IMPORT_FOLDER, FILE_TARGET):
     FILE_COUNT += 1
     print("\tLABELS: " + str(LABEL_COUNT))
 
-print("UNMERGED FILES: " + str(FILE_COUNT) + ".") 
+print("UNMERGED FILES: " + str(FILE_COUNT) + ".")
 println(os.linesep)
 
 
