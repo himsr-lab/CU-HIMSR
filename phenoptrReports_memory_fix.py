@@ -7,7 +7,7 @@
     Group:      Human Immune Monitoring Shared Resource (HIMSR)
                 University of Colorado, Anschutz Medical Campus
     Comment:    Reverse the merging process and split files
-                into separate per-slide data
+                by slide-ID (file) and channel (folder)
 """
 
 
@@ -54,22 +54,28 @@ def unmerge_data(in_path='/home/user/', out_path='export'):
     labels = 0
 
     with open(in_path, 'r') as in_file:
-        base = os.path.basename(file)
-        name = os.path.splitext(base)[0]
-        previous_label = ""
+        base = os.path.basename(in_file)
+        name = os.path.splitext(base)[0].replace("Merge_cell_seg_data ", "")
+        previous_folder = ""  # channel
+        previous_file = ""  # slide
 
         for index, line in enumerate(in_file):
             if index == 0: # header
-                headers = line
+                header = line
+                columns = header.split("\t")
             else: # data
-                # "Merge_cell_seg_data" needs to be removed from the file name
-                # "Scan1_[1,1]_cell_seg_data.txt" needs to be the end of the file name
-                current_label = line.split("\t")[1].split("_")[0]  # sample name
+                current_folder = out_path + os.path.sep + columns[3][0:-1]
+                current_file = columns[1].replace(".qptiff", "")  # sample name
 
-                with open(out_path + os.path.sep + name + " - " + current_label + ".txt", 'a') as out_file:
-                    if current_label != previous_label:
-                        out_file.write(headers)
-                        previous_label = current_label
+                if current_folder != previous_folder:  # channel changed
+                    if not os.path.exists(current_folder):
+                        os.mkdir(current_folder)
+                    previous_folder = current_folder
+
+                with open(current_folder + os.path.sep + name + " - " + current_file + ".txt", 'a') as out_file:
+                    if current_file != previous_file:  # slide changed
+                        out_file.write(header)
+                        previous_file = current_file
                         labels += 1
                     out_file.write(line)
 
@@ -77,10 +83,8 @@ def unmerge_data(in_path='/home/user/', out_path='export'):
 
 #  constants & variables
 
-# IMPORT_FOLDER = r".\import"
-# EXPORT_FOLDER = r".\export"
-IMPORT_FOLDER = r"C:\Users\TEMP-USER\Desktop\Chris (2020-10-23)"
-EXPORT_FOLDER = IMPORT_FOLDER + os.path.sep + r"unmerged"
+IMPORT_FOLDER = r".\import"
+EXPORT_FOLDER = r".\export"
 FILE_TARGET = "Merge_cell_seg_data.txt"
 
 # The folder structure, i.e. the name of the channel and batch folders needs to be
