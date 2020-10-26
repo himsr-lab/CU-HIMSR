@@ -2,7 +2,7 @@
 
 """
     Name:       phenoptrReports_consolidation_fix
-    Version:    1.0 (2020-08-31)
+    Version:    1.0 (2020-10-25)
     Author:     Christian Rickert
     Group:      Human Immune Monitoring Shared Resource (HIMSR)
                 University of Colorado, Anschutz Medical Campus
@@ -227,14 +227,14 @@ for batch in BATCHES:
 
         FILE_LINES = {}  # file line (absolute) count within channel
         for match in get_files(os.path.join(EXPORT_FOLDER, channel, batch), FILE_TARGET):
-            line_count = 0
+            LINE_COUNT = 0
             file = match.rsplit('\\', 1)[1]
-            line_count = get_line_counts(match)
-            FILE_LINES[file] = line_count
+            LINE_COUNT = get_line_counts(match)
+            FILE_LINES[file] = LINE_COUNT
             if file in FILE_MINS:
-                FILE_MINS[file] = line_count if line_count < FILE_MINS[file] else FILE_MINS[file]
+                FILE_MINS[file] = LINE_COUNT if LINE_COUNT < FILE_MINS[file] else FILE_MINS[file]
             else:  # file not in list
-                FILE_MINS[file] = line_count
+                FILE_MINS[file] = LINE_COUNT
             CHECKED_FILES += 1
 
         CHANNEL_FILE_LINES[channel] = FILE_LINES
@@ -301,25 +301,25 @@ for batch in BATCHES:
                 bal_lines = BATCH_FILE_MINS[batch][unb_file]
             except KeyError:
                 bal_lines = float("inf")
-            ref_channel = ""
-            ref_file = ""
-            ref_lines = 0
+            REF_CHANNEL = ""
+            REF_FILE = ""
+            REF_LINES = 0
             if unb_lines > bal_lines:
 
                 # loop: get the first reference file with paired lines to synchronize with
-                for ref_channel, ref_file_lines in BATCH_CHANNEL_FILE_LINES[batch].items():
+                for REF_CHANNEL, ref_file_lines in BATCH_CHANNEL_FILE_LINES[batch].items():
 
-                    for ref_file, ref_lines in ref_file_lines.items():
-                        if ref_lines == bal_lines:
+                    for REF_FILE, REF_LINES in ref_file_lines.items():
+                        if REF_LINES == bal_lines:
                             break  # break out of the inner reference loop
 
-                    if ref_lines == bal_lines:  # redundant, but required to force second break
+                    if REF_LINES == bal_lines:  # redundant, but required to force second break
                         break  # break out of the outer reference loop
 
                 # target for balanced file
                 bal_path = os.path.join(EXPORT_FOLDER, channel, batch, unb_file)
                 # reference for balanced file
-                ref_path = os.path.join(EXPORT_FOLDER, ref_channel, batch, ref_file)
+                ref_path = os.path.join(EXPORT_FOLDER, REF_CHANNEL, batch, REF_FILE)
                 # cell IDs to compare from reference
                 cell_ids = get_cell_ids(path=ref_path, length=unb_lines)
                 # source for unbalanced file
