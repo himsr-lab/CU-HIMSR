@@ -2,12 +2,12 @@
 
 """
     Name:       phenoptrReports_memory_fix
-    Version:    1.0 (2020-10-25)
+    Version:    1.0 (2020-10-27)
     Author:     Christian Rickert
     Group:      Human Immune Monitoring Shared Resource (HIMSR)
                 University of Colorado, Anschutz Medical Campus
-    Comment:    Reverse the merging process and split files
-                by slide-ID (file) and channel (folder)
+    Comment:    Reverse the merging process and split merge data
+                by channel (folder) and slide-ID (file).
 """
 
 
@@ -48,38 +48,40 @@ def println(string=""):
     print(string)
     sys.stdout.flush()
 
-def unmerge_data(in_path='/home/user/', out_path='export'):
+def unmerge_data(in_path='/home/user/', out_path='/home/user'):
     """ Imports data from a text file and writes out all columns on a per-file basis
         using the first column's data for labeling of individual export files. """
-    labels = 0
-
+    slides = 0
     with open(in_path, 'r') as in_file:
-        base = os.path.basename(in_file)
+        base = os.path.basename(in_path)
+        channel = base.split(" ")[0]
+        if not channel:
+            channel = "Unk"
+        folder = out_path + os.path.sep + channel
+        println("\tFOLDER: \"" + folder + "\"")
+        if not os.path.exists(folder):
+            os.mkdir(folder)
         name = os.path.splitext(base)[0].replace("Merge_cell_seg_data ", "")
-        previous_folder = ""  # channel
-        previous_file = ""  # slide
+        current_slide = None
+        previous_slide = ""
+        println("\t\tSLIDES:")
 
         for index, line in enumerate(in_file):
             if index == 0: # header
                 header = line
-                columns = header.split("\t")
             else: # data
-                current_folder = out_path + os.path.sep + columns[3][0:-1]
-                current_file = columns[1].replace(".qptiff", "")  # sample name
+                data = line.split("\t")
+                current_slide = data[1][0:-7]  # sample name
 
-                if current_folder != previous_folder:  # channel changed
-                    if not os.path.exists(current_folder):
-                        os.mkdir(current_folder)
-                    previous_folder = current_folder
-
-                with open(current_folder + os.path.sep + name + " - " + current_file + ".txt", 'a') as out_file:
-                    if current_file != previous_file:  # slide changed
+                with open(folder + os.path.sep + name + " - " + current_slide + ".txt", 'a') as out_file:
+                    if current_slide != previous_slide:  # slide changed
+                        println("\t\t\t\t\"" + current_slide + "\"")
                         out_file.write(header)
-                        previous_file = current_file
-                        labels += 1
+                        previous_slide = current_slide
+                        slides += 1
                     out_file.write(line)
 
-    return labels
+    return slides
 
 #  constants & variables
 
@@ -100,11 +102,11 @@ if not os.path.exists(EXPORT_FOLDER):
     os.mkdir(EXPORT_FOLDER)
 
 for file in get_files(IMPORT_FOLDER, FILE_TARGET):
-    LABEL_COUNT = 0
-    println("\tFILE: \"" + file)
-    LABEL_COUNT += unmerge_data(in_path=file, out_path=EXPORT_FOLDER)
+    SLIDE_COUNT = 0
+    println("\tFILE: \"" + file + "\"")
+    SLIDE_COUNT += unmerge_data(in_path=file, out_path=EXPORT_FOLDER)
     FILE_COUNT += 1
-    print("\tLABELS: " + str(LABEL_COUNT))
+    println("\tSLIDES: " + str(SLIDE_COUNT))
 
 print("UNMERGED FILES: " + str(FILE_COUNT) + ".")
 println(os.linesep)
