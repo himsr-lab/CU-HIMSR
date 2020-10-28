@@ -73,7 +73,8 @@ def unmerge_data(in_path='/home/user/', out_path='/home/user'):
                 data = line.split("\t")
                 current_slide = data[1][0:-7]  # sample name
 
-                with open(folder + os.path.sep + name + " - " + current_slide + ".txt", 'a') as out_file:
+                with open(folder + os.path.sep +\
+                          name + " - " + current_slide + ".txt", 'a') as out_file:
                     if current_slide != previous_slide:  # slide changed
                         println("\t\t\t\t\"" + current_slide + "\"")
                         out_file.write(header)
