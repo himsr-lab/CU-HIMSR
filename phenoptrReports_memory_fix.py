@@ -79,8 +79,9 @@ def unmerge_data(in_path='/home/user/', out_path='/home/user'):
                 data = in_line.split("\t")
                 current_slide = data[1][0:-7]  # new slide name
                 if current_slide != previous_slide:  # slide changed
-                    with open(folder + os.path.sep + name + " - " + previous_slide + ".txt", 'a') as out_file:
-                        for out_index, out_line in enumerate(file_data):
+                    with open(folder + os.path.sep +\
+                              name + " - " + previous_slide + ".txt", 'a') as out_file:
+                        for _out_index, out_line in enumerate(file_data):
                             out_file.write(out_line)
 
                     println("\t\t\t\t\"" + current_slide + "\"")
@@ -93,7 +94,7 @@ def unmerge_data(in_path='/home/user/', out_path='/home/user'):
 
         # write last slide before opening a new file
         with open(folder + os.path.sep + name + " - " + previous_slide + ".txt", 'a') as out_file:
-            for out_index, out_line in enumerate(file_data):
+            for _out_index, out_line in enumerate(file_data):
                 out_file.write(out_line)
 
     return slides
