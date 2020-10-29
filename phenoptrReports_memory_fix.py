@@ -2,7 +2,7 @@
 
 """
     Name:       phenoptrReports_memory_fix
-    Version:    1.0 (2020-10-27)
+    Version:    1.0 (2020-10-28)
     Author:     Christian Rickert
     Group:      Human Immune Monitoring Shared Resource (HIMSR)
                 University of Colorado, Anschutz Medical Campus
@@ -62,25 +62,39 @@ def unmerge_data(in_path='/home/user/', out_path='/home/user'):
         if not os.path.exists(folder):
             os.mkdir(folder)
         name = os.path.splitext(base)[0].replace("Merge_cell_seg_data ", "")
-        current_slide = None
+        current_slide = ""
         previous_slide = ""
+        file_data = []
         println("\t\tSLIDES:")
 
-        for index, line in enumerate(in_file):
-            if index == 0: # header
-                header = line
+        for in_index, in_line in enumerate(in_file):
+            if in_index == 0: # header
+                header = in_line
+            elif in_index == 1:
+                data = in_line.split("\t")
+                current_slide = data[1][0:-7]  # first slide name
+                println("\t\t\t\t\"" + current_slide + "\"")
+                previous_slide = current_slide
             else: # data
-                data = line.split("\t")
-                current_slide = data[1][0:-7]  # sample name
+                data = in_line.split("\t")
+                current_slide = data[1][0:-7]  # new slide name
+                if current_slide != previous_slide:  # slide changed
+                    with open(folder + os.path.sep + name + " - " + previous_slide + ".txt", 'a') as out_file:
+                        for out_index, out_line in enumerate(file_data):
+                            out_file.write(out_line)
 
-                with open(folder + os.path.sep +\
-                          name + " - " + current_slide + ".txt", 'a') as out_file:
-                    if current_slide != previous_slide:  # slide changed
-                        println("\t\t\t\t\"" + current_slide + "\"")
-                        out_file.write(header)
-                        previous_slide = current_slide
-                        slides += 1
-                    out_file.write(line)
+                    println("\t\t\t\t\"" + current_slide + "\"")
+                    file_data = []
+                    file_data.append(header)
+                    previous_slide = current_slide
+                    slides += 1
+                else:
+                    file_data.append(in_line)
+
+        # write last slide before opening a new file
+        with open(folder + os.path.sep + name + " - " + previous_slide + ".txt", 'a') as out_file:
+            for out_index, out_line in enumerate(file_data):
+                out_file.write(out_line)
 
     return slides
 
