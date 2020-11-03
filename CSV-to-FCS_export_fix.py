@@ -14,7 +14,6 @@
 #  imports
 
 import os
-import shutil
 import sys
 
 
@@ -91,11 +90,11 @@ def fix_csv_data(in_path='/home/user/', out_path='export', indices=None, headers
         numerical data ony: non-numerical data is discarded. Furthermore, data is
         exported on a per-file basis using the first column's data for labeling. """
     with open(in_path, 'r') as in_file:
-        base = os.path.basename(file)
+        base = os.path.basename(in_path)
         name = os.path.splitext(base)[0]
         previous_id = ""
 
-        for line, content in enumerate(in_file):
+        for _index, content in enumerate(in_file):
             chunks = content.split("\t")
             entries = []
 
