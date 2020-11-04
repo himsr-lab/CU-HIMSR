@@ -2,7 +2,7 @@
 
 """
     Name:       CSV-to-FCS_export_fix
-    Version:    1.0 (2020-08-31)
+    Version:    1.0 (2020-11-03)
     Author:     Christian Rickert
     Group:      Human Immune Monitoring Shared Resource (HIMSR)
                 University of Colorado, Anschutz Medical Campus
@@ -146,9 +146,10 @@ if not os.path.exists(EXPORT_FOLDER):
 
 for file in get_files(IMPORT_FOLDER, FILE_TARGET):
     println("\tFILE: \"" + file)
-    indices = get_column_indices(file)
-    headers = get_column_headers(file, indices)
-    fix_csv_data(in_path=file, out_path=EXPORT_FOLDER, indices=indices, headers=headers)
+    column_indices = get_column_indices(file)
+    column_headers = get_column_headers(file, column_indices)
+    fix_csv_data(in_path=file, out_path=EXPORT_FOLDER,
+                 indices=column_indices, headers=column_headers)
     FILE_COUNT += 1
 
 print("FIXED FILES: " + str(FILE_COUNT) + ".")
