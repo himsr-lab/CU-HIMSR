@@ -2,7 +2,7 @@
 
 """
     Name:       phenoptrReports_memory_fix
-    Version:    1.0 (2020-10-28)
+    Version:    1.0 (2020-11-06)
     Author:     Christian Rickert
     Group:      Human Immune Monitoring Shared Resource (HIMSR)
                 University of Colorado, Anschutz Medical Campus
@@ -79,11 +79,8 @@ def unmerge_data(in_path='/home/user/', out_path='/home/user'):
                 data = in_line.split("\t")
                 current_slide = data[1][0:-7]  # new slide name
                 if current_slide != previous_slide:  # slide changed
-                    with open(folder + os.path.sep +\
-                              name + " - " + previous_slide + ".txt", 'a') as out_file:
-                        for _out_index, out_line in enumerate(file_data):
-                            out_file.write(out_line)
-
+                    write_file(folder + os.path.sep + name + " - " + previous_slide + ".txt",
+                               file_data)
                     println("\t\t\t\t\"" + current_slide + "\"")
                     file_data = []
                     file_data.append(header)
@@ -93,11 +90,16 @@ def unmerge_data(in_path='/home/user/', out_path='/home/user'):
                     file_data.append(in_line)
 
         # write last slide before opening a new file
-        with open(folder + os.path.sep + name + " - " + previous_slide + ".txt", 'a') as out_file:
-            for _out_index, out_line in enumerate(file_data):
-                out_file.write(out_line)
+        write_file(folder + os.path.sep + name + " - " + previous_slide + ".txt", file_data)
 
     return slides
+
+def write_file(file='/home/user/file', array=None):
+    """ Writes a single array into a text file. """
+    with open(file, 'a') as out_file:
+        for _index, line in enumerate(array):
+            out_file.write(line)
+
 
 #  constants & variables
 
@@ -105,8 +107,9 @@ IMPORT_FOLDER = r".\import"
 EXPORT_FOLDER = r".\export"
 FILE_TARGET = "Merge_cell_seg_data.txt"
 
-# The folder structure, i.e. the name of the channel and batch folders needs to be
-# consistent across the project.
+# We're reversing Akoyas merge process by splitting files identifying unique slide IDs.
+# Unmerged files are written into separate channels - the channel name needs to preceed
+# the merge file name, separated by a space character.
 
 println(os.linesep)
 println("UNMERGING files in folder:")
@@ -117,10 +120,10 @@ FILE_COUNT = 0
 if not os.path.exists(EXPORT_FOLDER):
     os.mkdir(EXPORT_FOLDER)
 
-for file in get_files(IMPORT_FOLDER, FILE_TARGET):
+for merge_file in get_files(IMPORT_FOLDER, FILE_TARGET):
     SLIDE_COUNT = 0
-    println("\tFILE: \"" + file + "\"")
-    SLIDE_COUNT += unmerge_data(in_path=file, out_path=EXPORT_FOLDER)
+    println("\tFILE: \"" + merge_file + "\"")
+    SLIDE_COUNT += unmerge_data(in_path=merge_file, out_path=EXPORT_FOLDER)
     FILE_COUNT += 1
     println("\tSLIDES: " + str(SLIDE_COUNT))
 
