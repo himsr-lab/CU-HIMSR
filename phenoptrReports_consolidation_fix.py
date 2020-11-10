@@ -242,7 +242,7 @@ for batch in BATCHES:
     BATCH_FILE_MINS[batch] = FILE_MINS
     BATCH_CHANNEL_FILE_LINES[batch] = CHANNEL_FILE_LINES
 
-print("CHECKED FILES: " + str(CHECKED_FILES))
+print("CHECKED FILES: " + str(CHECKED_FILES) + ".")
 println(os.linesep)
 
 # We can now identify merge files which have more lines than the consensus (minimum) line count.
