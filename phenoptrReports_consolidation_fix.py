@@ -2,12 +2,12 @@
 
 """
     Name:       phenoptrReports_consolidation_fix
-    Version:    1.0 (2020-10-25)
+    Version:    1.0 (2020-12-15)
     Author:     Christian Rickert
     Group:      Human Immune Monitoring Shared Resource (HIMSR)
                 University of Colorado, Anschutz Medical Campus
     Comment:    Removes unmatched regions (files) and cells (lines)
-                from inForm export data.
+                from inForm export data and merge files.
 """
 
 
@@ -62,7 +62,8 @@ def get_folders(path='/home/user/', pattern='', recursive=False):
     with os.scandir(realpath) as fileobject_iterator:
         for fileobject in fileobject_iterator:
             if not os.path.islink(fileobject.path):
-                if fileobject.is_dir():  # simple folder match
+                if fileobject.is_dir() and not ("stroma" in str(fileobject).lower() or\
+                                                "tumor" in str(fileobject).lower()):  # no scores
                     folders.append(fileobject.path)
                     if recursive:  # traverse into subfolder
                         folders.append( \
@@ -142,10 +143,10 @@ println(os.linesep)
 # We are expecting to find the same files matching the file target pattern, see below,
 # in each of the channel and batch folders, respectively.
 
-println("Counting unique file names (2/6):")
+println("Counting matching file names (2/6):")
 println("---------------------------------")
 println("FILE: \"*" + FILE_TARGET + "\"")
-UNIQUE_NAMES = 0
+MATCHING_NAMES = 0
 BATCH_FILE_COUNTS = {}  # file counts by batch
 CHANNEL_COUNT = len(CHANNELS)
 
@@ -167,9 +168,9 @@ for batch in BATCHES:
 
     for file, counts in BATCH_FILE_COUNTS[batch].items():
         if counts == CHANNEL_COUNT:
-            UNIQUE_NAMES += 1
+            MATCHING_NAMES += 1
 
-print("UNIQUE NAMES: " + str(UNIQUE_NAMES) + ".")
+print("MATCHING NAMES: " + str(MATCHING_NAMES) + ".")
 println(os.linesep)
 
 # Files that match the pattern, but are not consistent across the folder structure,
