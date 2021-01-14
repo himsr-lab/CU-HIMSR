@@ -2,7 +2,7 @@
 
 """
     Name:       TXT-to-CSV_export_fix
-    Version:    1.0 (2021-01-13)
+    Version:    1.0 (2021-01-14)
     Author:     Christian Rickert
     Group:      Human Immune Monitoring Shared Resource (HIMSR)
                 University of Colorado, Anschutz Medical Campus
@@ -75,18 +75,19 @@ def txt_to_csv(in_path='/home/user/', out_path='export', indices=None):
         base = os.path.basename(in_path)
         name = os.path.splitext(base)[0]
         last_index = indices[-1]
-        count = 0
         with open(out_path + os.path.sep + name + ".csv", 'w') as out_file:
 
             for count, line in enumerate(in_file):
+                out_line = ""
 
                 for index, data in enumerate(line.split("\t")):
                     if index in indices:  # numerical data
-                        out_file.write(data)
+                        out_line += data
                         if index < last_index:
-                            out_file.write("\t")
+                            out_line += "\t"
                         else:
-                            out_file.write("\n")
+                            out_line += "\n"
+                            out_file.write(out_line)
                             break  # proceed to next line
 
     return count
