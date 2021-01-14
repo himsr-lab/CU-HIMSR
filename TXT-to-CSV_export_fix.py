@@ -74,20 +74,21 @@ def txt_to_csv(in_path='/home/user/', out_path='export', indices=None):
     with open(in_path, 'r') as in_file:
         base = os.path.basename(in_path)
         name = os.path.splitext(base)[0]
-        last_index = indices[-1]
         with open(out_path + os.path.sep + name + ".csv", 'w') as out_file:
+            count = 0
+            last_index = indices[-1]
 
             for count, line in enumerate(in_file):
-                out_line = ""
+                out_array = []  # avoid immutable strings to improve performance
 
                 for index, data in enumerate(line.split("\t")):
                     if index in indices:  # numerical data
-                        out_line += data
-                        if index < last_index:
-                            out_line += "\t"
-                        else:
-                            out_line += "\n"
-                            out_file.write(out_line)
+                        out_array.append(data)
+                        if index < last_index:  # line incomplete, add tabulator
+                            out_array.append("\t")
+                        else:  # line complete, add line feed and write line
+                            out_array.append("\n")
+                            out_file.write("".join(out_array))
                             break  # proceed to next line
 
     return count
