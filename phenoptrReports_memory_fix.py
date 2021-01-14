@@ -100,14 +100,14 @@ FILE_TARGET = "Merge_cell_seg_data.txt"
 println(os.linesep)
 println("UNMERGING files in folder:")
 println("-----------------------")
-println("MATCH: \"*" + FILE_TARGET + "\"")
+println("FILE: \"*" + FILE_TARGET + "\"")
 FILE_COUNT = 0
 
 if not os.path.exists(EXPORT_FOLDER):
     os.mkdir(EXPORT_FOLDER)
 
 for file in get_files(IMPORT_FOLDER, FILE_TARGET):
-    println("\tFILE: \"" + file + "\"")
+    println("\tNAME: \"" + file + "\"")
     unmerge_data(in_path=file, out_path=EXPORT_FOLDER)
     FILE_COUNT += 1
 
