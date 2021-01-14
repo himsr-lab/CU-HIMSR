@@ -81,7 +81,6 @@ def txt_to_csv(in_path='/home/user/', out_path='export', indices=None):
             for count, line in enumerate(in_file):
 
                 for index, data in enumerate(line.split("\t")):
-
                     if index in indices:  # numerical data
                         out_file.write(data)
                         if index < last_index:
