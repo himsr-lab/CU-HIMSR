@@ -2,7 +2,7 @@
 
 """
     Name:       phenoptrReports_consolidation_fix
-    Version:    1.0 (2020-12-15)
+    Version:    1.0 (2021-01-29)
     Author:     Christian Rickert
     Group:      Human Immune Monitoring Shared Resource (HIMSR)
                 University of Colorado, Anschutz Medical Campus
@@ -48,7 +48,7 @@ def get_files(path='/home/user/', pattern='', recursive=False):
     with os.scandir(realpath) as fileobject_iterator:
         for fileobject in fileobject_iterator:
             if not os.path.islink(fileobject.path):
-                if fileobject.is_file() and fileobject.name.endswith(pattern):  # simple file match
+                if fileobject.is_file() and pattern in str(fileobject.name):  # simple file match
                     files.append(fileobject.path)
                 elif recursive and fileobject.is_dir():
                     files.append( \
@@ -110,7 +110,7 @@ def sync_cell_ids(in_path='/home/user/', match_ids=None, out_path='/home/user/')
 #  constants & variables
 
 EXPORT_FOLDER = r".\export"
-FILE_TARGET = "_cell_seg_data.txt"
+FILE_TARGET = "_cell_seg_data"  # data and summaries required for consolidation
 MERGE_FILE = "Merge_cell_seg_data.txt"
 CHANNELS = []
 BATCHES = []
