@@ -112,7 +112,7 @@ def sync_cell_ids(in_path='/home/user/', match_ids=None, out_path='/home/user/')
 
 EXPORT_FOLDER = r".\export"
 FILE_TARGET = "_cell_seg_data"  # data and summaries required for consolidation
-FOLDER_EXCLUSION = ["Stroma", "Tumor"] # exclude folders with scoring information
+FOLDER_EXCLUSION = ["Stroma", "Tumor"]  # exclude folders with scoring information
 MERGE_FILE = "Merge_cell_seg_data.txt"
 CHANNELS = []
 BATCHES = []
