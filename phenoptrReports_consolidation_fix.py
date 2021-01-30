@@ -48,26 +48,27 @@ def get_files(path='/home/user/', pattern='', recursive=False):
     with os.scandir(realpath) as fileobject_iterator:
         for fileobject in fileobject_iterator:
             if not os.path.islink(fileobject.path):
-                if fileobject.is_file() and pattern in str(fileobject.name):  # simple file match
+                if fileobject.is_file() and pattern in fileobject.name:  # match pattern
                     files.append(fileobject.path)
                 elif recursive and fileobject.is_dir():
                     files.append( \
                         get_files(path=fileobject.path, pattern=pattern, recursive=recursive))
     return flatten(files)
 
-def get_folders(path='/home/user/', pattern='', recursive=False):
-    """ Returns all folders in path matching the pattern. """
+def get_folders(path='/home/user/', pattern='', exclusions='', recursive=False):
+    """ Returns all folders in path matching the pattern, but excluding the antipattern. """
     folders = []
     realpath = os.path.realpath(path)
     with os.scandir(realpath) as fileobject_iterator:
         for fileobject in fileobject_iterator:
             if not os.path.islink(fileobject.path):
-                if fileobject.is_dir() and not ("stroma" in str(fileobject).lower() or\
-                                                "tumor" in str(fileobject).lower()):  # no scores
+                if fileobject.is_dir() and True \
+                if True not in [antipattern in fileobject.name for antipattern in exclusions] \
+                else False:  # match pattern/antipattern
                     folders.append(fileobject.path)
                     if recursive:  # traverse into subfolder
-                        folders.append( \
-                            get_folders(path=fileobject.path, pattern=pattern, recursive=recursive))
+                        folders.append(get_folders(path=fileobject.path, pattern=pattern, \
+                                                   exclusions=exclusions, recursive=recursive))
     return flatten(folders)
 
 def get_line_counts(path='/home/user/'):
@@ -111,6 +112,7 @@ def sync_cell_ids(in_path='/home/user/', match_ids=None, out_path='/home/user/')
 
 EXPORT_FOLDER = r".\export"
 FILE_TARGET = "_cell_seg_data"  # data and summaries required for consolidation
+FOLDER_EXCLUSION = ["Stroma", "Tumor"] # exclude folders with scoring information
 MERGE_FILE = "Merge_cell_seg_data.txt"
 CHANNELS = []
 BATCHES = []
@@ -123,7 +125,7 @@ println("Retrieving folder lists (1/6):")
 println("------------------------------")
 println("EXPORT: \"" + EXPORT_FOLDER.rsplit('\\', 1)[1] + "\"")
 
-for channel_folder in get_folders(EXPORT_FOLDER):
+for channel_folder in get_folders(EXPORT_FOLDER, '', FOLDER_EXCLUSION):
     println("\tCHANNEL: \"" + channel_folder + "\"")
     channel = channel_folder.rsplit('\\', 1)[1]
     if channel not in CHANNELS:  # unique names only
