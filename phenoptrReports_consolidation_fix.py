@@ -147,7 +147,7 @@ println(os.linesep)
 
 println("Counting matching file names (2/6):")
 println("---------------------------------")
-println("FILE: \"*" + FILE_TARGET + "\"")
+println("FILE: \"*" + FILE_TARGET + "*\"")
 MATCHING_NAMES = 0
 BATCH_FILE_COUNTS = {}  # file counts by batch
 CHANNEL_COUNT = len(CHANNELS)
@@ -215,7 +215,7 @@ println(os.linesep)
 println("Checking line counts in merge files (4/6):")
 println("------------------------------------------")
 FILE_TARGET = MERGE_FILE
-println("FILE: \"*" + FILE_TARGET + "\"")
+println("FILE: \"*" + FILE_TARGET + "*\"")
 CHECKED_FILES = 0
 BATCH_FILE_MINS = {}  # file line (minimum) counts by batch
 BATCH_CHANNEL_FILE_LINES = {}  # file line (actual) counts by batch and channel
