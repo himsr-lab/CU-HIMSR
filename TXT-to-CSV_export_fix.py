@@ -99,7 +99,10 @@ def txt_to_csv(in_path='', delimiter_in='', out_path='', delimiter_out=',', indi
         name = os.path.splitext(base)[0]
         with open(out_path + os.path.sep + name + ".csv", 'w') as out_file:
             count = 0
-            last_index = indices[-1]
+            try:
+                last_index = indices[-1]
+            except IndexError:
+                pass  # no columns indices available
 
             for count, line in enumerate(in_file):
                 out_array = []  # avoid immutable strings to improve performance
