@@ -335,4 +335,4 @@ for batch in BATCHES:
 println("UNBALANCED LINES: " + str(UNBALANCED_LINES) + ".")
 println(os.linesep)
 
-WAIT = input("Press ENTER to end this program.")
+WAIT = input("Press ENTER to exit this program.")

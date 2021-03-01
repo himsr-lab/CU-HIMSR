@@ -115,4 +115,4 @@ print("UNMERGED FILES: " + str(FILE_COUNT) + ".")
 println(os.linesep)
 
 
-WAIT = input("Press ENTER to end this program.")
+WAIT = input("Press ENTER to exit this program.")
