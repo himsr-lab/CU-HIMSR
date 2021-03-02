@@ -2,7 +2,7 @@
 
 """
     Name:       phenoptrReports_consolidation_fix
-    Version:    1.0 (2021-01-29)
+    Version:    1.0 (2021-03-01)
     Author:     Christian Rickert
     Group:      Human Immune Monitoring Shared Resource (HIMSR)
                 University of Colorado, Anschutz Medical Campus
@@ -62,9 +62,8 @@ def get_folders(path='/home/user/', pattern='', exclusions='', recursive=False):
     with os.scandir(realpath) as fileobject_iterator:
         for fileobject in fileobject_iterator:
             if not os.path.islink(fileobject.path):
-                if fileobject.is_dir() and True \
-                if True not in [antipattern in fileobject.name for antipattern in exclusions] \
-                else False:  # match pattern/antipattern
+                if fileobject.is_dir() and \
+                bool(True not in [(antipattern in fileobject.name) for antipattern in exclusions]):
                     folders.append(fileobject.path)
                     if recursive:  # traverse into subfolder
                         folders.append(get_folders(path=fileobject.path, pattern=pattern, \
