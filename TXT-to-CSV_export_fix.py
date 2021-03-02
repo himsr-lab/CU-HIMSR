@@ -2,7 +2,7 @@
 
 """
     Name:       TXT-to-CSV_export_fix
-    Version:    1.0 (2021-03-01)
+    Version:    1.0 (2021-03-02)
     Author:     Christian Rickert
     Group:      Human Immune Monitoring Shared Resource (HIMSR)
                 University of Colorado, Anschutz Medical Campus
@@ -13,9 +13,9 @@
 
 #  imports
 
+import math
 import os
 import sys
-
 
 #  functions
 
@@ -48,28 +48,31 @@ def println(string=""):
     print(string)
     sys.stdout.flush()
 
-def matching_columns(matches='', numbers=''):
-    """ Returns a list of column indices found in both the matches list
+def matching_columns(patterns='', numbers=''):
+    """ Returns a list of column indices found in both the patterns list
         as well as the list of columns with numerical content """
-    match = [(match and numerical) for match, numerical in zip(matches, numbers)]
-    return match
+    column = [(pattern and numerical) for pattern, numerical in zip(patterns, numbers)]
+    return column
 
-def matching_number(string=''):
+def matching_numbers(string='', nans=None):
     """ Checks if a string is numerical and returns the boolean value """
+    number = False
     try:
-        float(string)  # cast string to float
-        return True
+        math.isnan(float(string))  # cast string to float and check for Python NaN
+        number = True
     except ValueError:
-        return False
+        if string in nans:  # valid NaN
+            number = True
+    return number
 
-def matching_pattern(patterns=None, antipatterns=None, string=''):
+def matching_patterns(patterns=None, antipatterns=None, string=''):
     """ Returns the matching status for a string string using
         lists of patterns and antipatterns. """
-    match = bool(True in [(pattern in string) for pattern in patterns] and \
+    pattern = bool(True in [(pattern in string) for pattern in patterns] and \
                  not True in [(antipattern in string) for antipattern in antipatterns])
-    return match
+    return pattern
 
-def get_column_indices(path='', delimiter='', patterns=None, antipatterns=None):
+def get_column_indices(path='', delimiter='', patterns=None, antipatterns=None, nans=None):
     """ Returns the indices of columns in a single line of a file containing numerical data. """
     indices = []
     with open(path, 'r') as textfile:
@@ -82,21 +85,23 @@ def get_column_indices(path='', delimiter='', patterns=None, antipatterns=None):
             elif line_index > 1:  # stop iteration afterwards
                 break
 
-    matches = [matching_pattern(patterns, antipatterns, header) for header in headers]
-    numbers = [matching_number(datum) for datum in data]
+    patterns = [matching_patterns(patterns, antipatterns, header) for header in headers]
+    numbers = [matching_numbers(datum, nans) for datum in data]
 
-    for index, valid in enumerate(matching_columns(matches, numbers)):
-        if valid:
+    for index, column in enumerate(matching_columns(patterns, numbers)):
+        if column:
             indices.append(index)
 
     return indices
 
-def txt_to_csv(in_path='', delimiter_in='', out_path='', delimiter_out=',', indices=None):
+def txt_to_csv(in_path='', delimiter_in='', out_path='', delimiter_out='', indices=None, nans=None):
     """ Imports data from an inForm csv file and writes out all columns that contain
         numerical data and match a pattern, while not matching the antipattern. """
     with open(in_path, 'r') as in_file:
         base = os.path.basename(in_path)
         name = os.path.splitext(base)[0]
+        nan = "NaN"
+        ret = "\n"
         with open(out_path + os.path.sep + name + ".csv", 'w') as out_file:
             count = 0
             try:
@@ -105,15 +110,20 @@ def txt_to_csv(in_path='', delimiter_in='', out_path='', delimiter_out=',', indi
                 pass  # no columns indices available
 
             for count, line in enumerate(in_file):
-                out_array = []  # avoid immutable strings to improve performance
+                out_array = []  # avoid string concatenation to improve performance
 
                 for index, data in enumerate(line.split(delimiter_in)):
                     if index in indices:  # numerical data
-                        out_array.append(data)
+                        if count == 0:  # fix header issues
+                            out_array.append(data.replace(delimiter_out, ""))
+                        else:
+                            if data in nans:  # fix not-a-number values
+                                data = nan
+                            out_array.append(data)
                         if index < last_index:  # line incomplete, add tabulator
                             out_array.append(delimiter_out)
                         else:  # line complete, add line feed and write line
-                            out_array.append("\n")
+                            out_array.append(ret)
                             out_file.write("".join(out_array))
                             break  # proceed to next line
 
@@ -128,6 +138,7 @@ HEADER_EXLCUDE = []  # exclude none with empty list: []
 IMPORT_FOLDER = r".\import"
 EXPORT_FOLDER = r".\export"
 FILE_TARGET = "_cell_seg_data.txt"
+NANS = ["NA", "NaN", "N/A", "#N/A"]  # valid not-a-number strings
 
 #  main program
 
@@ -143,11 +154,12 @@ if not os.path.exists(EXPORT_FOLDER):
 for file in get_files(IMPORT_FOLDER, FILE_TARGET):
     println("\tFILE: \"" + file)
     column_indices = get_column_indices(path=file, delimiter=DELIMITER_IN, \
-                                        patterns=HEADER_INCLUDE, antipatterns=HEADER_EXLCUDE)
+                                        patterns=HEADER_INCLUDE, antipatterns=HEADER_EXLCUDE, \
+                                        nans=NANS)
     println("\t\tCOLUMNS: " + str(len(column_indices)))
     line_count = txt_to_csv(in_path=file, delimiter_in=DELIMITER_IN, \
                             out_path=EXPORT_FOLDER, delimiter_out=DELIMITER_OUT, \
-                            indices=column_indices)
+                            indices=column_indices, nans=NANS)
     println("\t\tLINES: " + str(line_count))
     FILE_COUNT += 1
 
