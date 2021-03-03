@@ -97,36 +97,31 @@ def get_column_indices(path='', delimiter='', patterns=None, antipatterns=None, 
 def txt_to_csv(in_path='', delimiter_in='', out_path='', delimiter_out='', indices=None, nans=None):
     """ Imports data from an inForm csv file and writes out all columns that contain
         numerical data and match a pattern, while not matching the antipattern. """
-    with open(in_path, 'r') as in_file:
-        base = os.path.basename(in_path)
-        name = os.path.splitext(base)[0]
-        nan = "NaN"
-        ret = "\n"
-        with open(out_path + os.path.sep + name + ".csv", 'w') as out_file:
-            count = 0
-            try:
-                last_index = indices[-1]
-            except IndexError:
-                pass  # no columns indices available
+    columns = len(indices)
+    count = 0
+    if columns > 0:
+        with open(in_path, 'r') as in_file:
+            base = os.path.basename(in_path)
+            name = os.path.splitext(base)[0]
+            nan = "NaN"
+            out_array = ["", delimiter_out] * columns  # preallocate to minimize memory overhead
+            out_array[-1] = "\n"  # carriage return
+            with open(out_path + os.path.sep + name + ".csv", 'w') as out_file:
 
-            for count, line in enumerate(in_file):
-                out_array = []  # avoid string concatenation to improve performance
+                for count, line in enumerate(in_file):
+                    column = -2  # export column index
 
-                for index, data in enumerate(line.split(delimiter_in)):
-                    if index in indices:  # numerical data
-                        if count == 0:  # fix header issues
-                            out_array.append(data.replace(delimiter_out, ""))
-                        else:
-                            if data in nans:  # fix not-a-number values
-                                data = nan
-                            out_array.append(data)
-                        if index < last_index:  # line incomplete, add tabulator
-                            out_array.append(delimiter_out)
-                        else:  # line complete, add line feed and write line
-                            out_array.append(ret)
-                            out_file.write("".join(out_array))
-                            break  # proceed to next line
+                    for index, data in enumerate(line.split(delimiter_in)):
+                        if index in indices:  # numerical data or nan
+                            column += 2
+                            if count == 0:  # fix header issues
+                                out_array[column] = data.replace(delimiter_out, "")
+                            else:
+                                if data in nans:  # replace with default value
+                                    data = nan
+                                out_array[column] = data
 
+                    out_file.write("".join(out_array))
     return count
 
 #  constants & variables
