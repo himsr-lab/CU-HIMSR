@@ -1,21 +1,40 @@
 #!/usr/bin/env python3
 
 """
-    Name:       phenoptrReports_memory_fix
-    Version:    1.0 (2020-11-09)
-    Author:     Christian Rickert
-    Group:      Human Immune Monitoring Shared Resource (HIMSR)
-                University of Colorado, Anschutz Medical Campus
-    Comment:    Reverse the merging process and split merge data
-                by channel (folder) and slide-ID (file).
-"""
+Copyright 2021 Regents of the University of Colorado
 
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+Author:     Christian Rickert <christian.rickert@cuanschutz.edu>
+Group:      Human Immune Monitoring Shared Resource (HIMSR)
+            University of Colorado, Anschutz Medical Campus
+
+Title:      phenoptrReports_memory_fix
+Summary:    Reverse the merging process and split merge data
+            by channel (folder) and slide-ID (file)
+Version:    1.0 (2020-11-09)
+
+URL:        https://github.com/christianrickert/CU-HIMSR/
+
+Description:
+
+TODO
+"""
 
 #  imports
 
 import os
 import sys
-
 
 #  functions
 
@@ -86,7 +105,6 @@ def unmerge_data(in_path='/home/user/', out_path='/home/user'):
         with open(folder + os.path.sep + name + " - " + previous_slide + ".txt", 'a') as out_file:
             for _out_index, out_line in enumerate(file_data):
                 out_file.write(out_line)
-
 
 #  constants & variables
 
