@@ -22,7 +22,7 @@ Group:      Human Immune Monitoring Shared Resource (HIMSR)
 Title:      TXT-to-CSV_export_fix
 Summary:    Removes non-numeric columns from inForm exports
             in preparation for a CSV-to-FCS export
-Version:    1.0 (2021-03-02)
+Version:    1.0 (2021-03-05)
 
 URL:        https://github.com/christianrickert/CU-HIMSR/
 
@@ -167,7 +167,7 @@ if not os.path.exists(EXPORT_FOLDER):
     os.mkdir(EXPORT_FOLDER)
 
 for file in get_files(IMPORT_FOLDER, FILE_TARGET):
-    println("\tFILE: \"" + file)
+    println("\tNAME: \"" + file)
     column_indices = get_column_indices(path=file, delimiter=DELIMITER_IN, \
                                         patterns=HEADER_INCLUDE, antipatterns=HEADER_EXLCUDE, \
                                         nans=NANS)
