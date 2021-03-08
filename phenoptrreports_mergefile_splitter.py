@@ -19,10 +19,10 @@ Author:     Christian Rickert <christian.rickert@cuanschutz.edu>
 Group:      Human Immune Monitoring Shared Resource (HIMSR)
             University of Colorado, Anschutz Medical Campus
 
-Title:      phenoptrReports_memory_fix
+Title:      phenoptrreports_mergefile_splitter
 Summary:    Reverse the merging process and split merge data
             by channel (folder) and slide-ID (file)
-Version:    1.0 (2020-11-09)
+Version:    1.0 (2021-03-08)
 
 URL:        https://github.com/christianrickert/CU-HIMSR/
 
