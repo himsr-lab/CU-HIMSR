@@ -28,7 +28,48 @@ URL:        https://github.com/christianrickert/CU-HIMSR/
 
 Description:
 
-TODO
+inForm's export data as well as the corresponding merge files
+can contain individual cells (lines) that have been identified
+by the segmentation algorithm in one channel, but might be missing
+in other channels (folders). In this case, the consolidation fails
+and phenoptrReports throws an error that the line counts do not
+match. To work around this issue, we ensure that the export data
+contains only files from consensus regions, i.e. files that are
+present in all channel folders. In addition, we scan the merge
+files for missing cell IDs and remove surplus lines from the merge
+files of other channels, respectively.
+Please organize your data in the following file system structure:
+
+/export
+    ./channel a
+        ./batch 1
+            ./*_cell_seg_data.txt
+            ./Merge_cell_seg_data.txt
+        ./batch 2
+        ./batch 3
+    ./channel b
+        ./batch 1
+            ./*_cell_seg_data.txt
+            ./Merge_cell_seg_data.txt
+        ./batch 2
+        ./batch 3
+    ./channel c
+        ./batch 1
+            ./*_cell_seg_data.txt
+            ./Merge_cell_seg_data.txt
+        ./batch 2
+        ./batch 3
+    ./Stroma (ignored)
+    ./Tumor (ignored)
+
+The top-most folders in the export folder are the channel folders,
+which can have any name, but should not contain "Stroma" or "Tumor".
+The folders contained in the channel folders need to be named
+identical across channels, e.g. "batch" or "data" to be able to
+identify consensus regions for different batches.
+Both unmatched (non-consensus) channel files as well as unbalanced
+merge files with surplus lines are moved into subfolders of their
+corresponding batch folders.
 """
 
 #  imports
