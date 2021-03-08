@@ -64,7 +64,7 @@ def get_files(path='/home/user/', pattern='', recursive=False):
     with os.scandir(realpath) as fileobject_iterator:
         for fileobject in fileobject_iterator:
             if not os.path.islink(fileobject.path):
-                if fileobject.is_file() and fileobject.name.endswith(pattern):  # simple file match
+                if fileobject.is_file() and pattern in fileobject.name:  # match pattern
                     files.append(fileobject.path)
                 elif recursive and fileobject.is_dir():
                     files.append( \
