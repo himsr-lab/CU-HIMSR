@@ -19,10 +19,10 @@ Author:     Christian Rickert <christian.rickert@cuanschutz.edu>
 Group:      Human Immune Monitoring Shared Resource (HIMSR)
             University of Colorado, Anschutz Medical Campus
 
-Title:      TXT-to-CSV_export_fix
+Title:      txt2csv_sanitizer
 Summary:    Removes non-numeric columns from inForm exports
             in preparation for a CSV-to-FCS export
-Version:    1.0 (2021-03-05)
+Version:    1.0 (2021-03-08)
 
 URL:        https://github.com/christianrickert/CU-HIMSR/
 
