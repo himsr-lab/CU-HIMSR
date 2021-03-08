@@ -19,10 +19,10 @@ Author:     Christian Rickert <christian.rickert@cuanschutz.edu>
 Group:      Human Immune Monitoring Shared Resource (HIMSR)
             University of Colorado, Anschutz Medical Campus
 
-Title:      phenoptrReports_consolidation_fix
+Title:      phenoptrreports_consolidation_synchronizer
 Summary:    Removes unmatched regions (files) and cells (lines)
             from inForm export data and merge files.
-Version:    1.0 (2021-03-01)
+Version:    1.0 (2021-03-08)
 
 URL:        https://github.com/christianrickert/CU-HIMSR/
 
