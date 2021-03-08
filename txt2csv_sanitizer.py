@@ -20,15 +20,23 @@ Group:      Human Immune Monitoring Shared Resource (HIMSR)
             University of Colorado, Anschutz Medical Campus
 
 Title:      txt2csv_sanitizer
-Summary:    Removes non-numeric columns from inForm exports
-            in preparation for a CSV-to-FCS export
+Summary:    Sanitizes inForm export text files in preparation for
+            CSV-to-FCS exports by replacing or removing invalid data
 Version:    1.0 (2021-03-08)
 
 URL:        https://github.com/christianrickert/CU-HIMSR/
 
 Description:
 
-TODO
+txt2csv_sanitizer checks the first line of the input files for header
+entries that will be included or excluded during the export process.
+In the next step, the data in the second line of the input files is
+evaluated for numerical properties: if an entry is either a number or
+a percentage or of a not-a-number type, its corresponding column will
+be included during the export process. In contrast, columns containing
+entries with non-numerical data (text, etc.) will be excluded from the
+export. Furthermore, commas present in the header entries will be
+removed and all tabulators will be replaced by commas.
 """
 
 #  imports
@@ -75,7 +83,8 @@ def matching_columns(patterns='', numbers=''):
     return column
 
 def matching_numbers(string='', nans=None):
-    """ Checks if a string is numerical and returns the boolean value """
+    """ Checks if a string is numerical or a percentage or in the list of
+        not-a-number entries and returns the result as a boolean value """
     number = False
     perc = "%"
     try:
@@ -87,14 +96,13 @@ def matching_numbers(string='', nans=None):
     return number
 
 def matching_patterns(patterns=None, antipatterns=None, string=''):
-    """ Returns the matching status for a string string using
-        lists of patterns and antipatterns. """
+    """ Returns the matching status for a string using lists of patterns and antipatterns. """
     pattern = bool(True in [(pattern in string) for pattern in patterns] and \
                  not True in [(antipattern in string) for antipattern in antipatterns])
     return pattern
 
 def get_column_indices(path='', delimiter='', patterns=None, antipatterns=None, nans=None):
-    """ Returns the indices of columns in a single line of a file containing numerical data. """
+    """ Returns the indices of columns in a single line of a file containing valid data. """
     indices = []
     with open(path, 'r') as textfile:
 
@@ -117,8 +125,8 @@ def get_column_indices(path='', delimiter='', patterns=None, antipatterns=None, 
 
 def txt_to_csv(in_path='', delimiter_in='', out_path='', delimiter_out='', \
                indices=None, nans=None, nan=''):
-    """ Imports data from an inForm csv file and writes out all columns that contain
-        numerical data and match a pattern, while not matching the antipattern. """
+    """ Reads a text file, keeps only its specified columns, and sanitizes the input
+        before exporting a numerical-data csv file for use with R, for example. """
     columns = len(indices)
     count = 0
     perc = "%"
