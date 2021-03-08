@@ -77,11 +77,12 @@ def matching_columns(patterns='', numbers=''):
 def matching_numbers(string='', nans=None):
     """ Checks if a string is numerical and returns the boolean value """
     number = False
+    perc = "%"
     try:
-        math.isnan(float(string))  # cast string to float and check for Python NaN
+        math.isnan(float(string))  # cast string to float and check for Python "NaN"
         number = True
     except ValueError:
-        if string in nans:  # valid NaN
+        if string.endswith(perc) or string in nans:  # percentage or invalid NaN
             number = True
     return number
 
@@ -114,16 +115,17 @@ def get_column_indices(path='', delimiter='', patterns=None, antipatterns=None, 
 
     return indices
 
-def txt_to_csv(in_path='', delimiter_in='', out_path='', delimiter_out='', indices=None, nans=None):
+def txt_to_csv(in_path='', delimiter_in='', out_path='', delimiter_out='', \
+               indices=None, nans=None, nan=''):
     """ Imports data from an inForm csv file and writes out all columns that contain
         numerical data and match a pattern, while not matching the antipattern. """
     columns = len(indices)
     count = 0
+    perc = "%"
     if columns > 0:
         with open(in_path, 'r') as in_file:
             base = os.path.basename(in_path)
             name = os.path.splitext(base)[0]
-            nan = "NaN"
             out_array = ["", delimiter_out] * columns  # preallocate to minimize memory overhead
             out_array[-1] = "\n"  # carriage return
             with open(out_path + os.path.sep + name + ".csv", 'w') as out_file:
@@ -137,7 +139,9 @@ def txt_to_csv(in_path='', delimiter_in='', out_path='', delimiter_out='', indic
                             if count == 0:  # fix header issues
                                 out_array[column] = data.replace(delimiter_out, "")
                             else:
-                                if data in nans:  # replace with default value
+                                if data.endswith(perc):  # remove percentage sign
+                                    data = data[:-1]
+                                elif data in nans:  # replace with default NaN
                                     data = nan
                                 out_array[column] = data
 
@@ -146,14 +150,15 @@ def txt_to_csv(in_path='', delimiter_in='', out_path='', delimiter_out='', indic
 
 #  constants & variables
 
-DELIMITER_IN = "\t"  # tabulator-separated
-DELIMITER_OUT = ","  # comma-separated
+DELIMITER_IN = "\t"  # input tabulator-delimited
+DELIMITER_OUT = ","  # output comma-delimited
 HEADER_INCLUDE = [""]  # include all with list of empty string: [""]
 HEADER_EXLCUDE = []  # exclude none with empty list: []
 IMPORT_FOLDER = r".\import"
 EXPORT_FOLDER = r".\export"
 FILE_TARGET = "_cell_seg_data.txt"
-NANS = ["NA", "NaN", "N/A", "#N/A"]  # valid not-a-number strings
+NANS = ["#N/A", "N/A", "NA", "NaN"]  # input not-a-number
+NAN = "NaN"  # output not-a-number
 
 #  main program
 
@@ -174,7 +179,7 @@ for file in get_files(IMPORT_FOLDER, FILE_TARGET):
     println("\t\tCOLUMNS: " + str(len(column_indices)))
     line_count = txt_to_csv(in_path=file, delimiter_in=DELIMITER_IN, \
                             out_path=EXPORT_FOLDER, delimiter_out=DELIMITER_OUT, \
-                            indices=column_indices, nans=NANS)
+                            indices=column_indices, nans=NANS, nan=NAN)
     println("\t\tLINES: " + str(line_count))
     FILE_COUNT += 1
 
