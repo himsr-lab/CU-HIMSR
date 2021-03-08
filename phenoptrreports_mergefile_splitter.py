@@ -28,7 +28,10 @@ URL:        https://github.com/christianrickert/CU-HIMSR/
 
 Description:
 
-TODO
+We split merge files into individual files by using the sample name
+(slide ID, first column) as a reference. Unmerged files can then be
+merged and consolidated separately in order to avoid prohibitive
+peak memory usage by phenoptrReports.
 """
 
 #  imports
