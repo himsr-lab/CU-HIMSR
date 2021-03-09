@@ -22,7 +22,6 @@ Group:      Human Immune Monitoring Shared Resource (HIMSR)
 Title:      phenoptrreports_consolidation_synchronizer
 Summary:    Removes unmatched regions (files) and cells (lines)
             from inForm export data and merge files.
-Version:    1.0 (2021-03-08)
 
 URL:        https://github.com/christianrickert/CU-HIMSR/
 
@@ -168,16 +167,17 @@ def sync_cell_ids(in_path='/home/user/', match_ids=None, out_path='/home/user/')
 
 #  constants & variables
 
+BATCHES = []
+CHANNELS = []
 EXPORT_FOLDER = r".\export"
 FILE_TARGET = "_cell_seg_data"  # data and summaries required for consolidation
 FOLDER_EXCLUSION = ["Stroma", "Tumor"]  # exclude folders with scoring information
 MERGE_FILE = "Merge_cell_seg_data.txt"
-CHANNELS = []
-BATCHES = []
+VERSION = "phenoptrreports_consolidation_synchronizer 1.0 (2021-03-09)"
 
-# The folder structure, i.e. the name of the channel and batch folders needs to be
-# consistent across the project.
+#  main program
 
+println(VERSION)
 println(os.linesep)
 println("Retrieving folder lists (1/6):")
 println("------------------------------")

@@ -22,7 +22,6 @@ Group:      Human Immune Monitoring Shared Resource (HIMSR)
 Title:      phenoptrreports_mergefile_splitter
 Summary:    Reverse the merging process and split merge data
             by channel (folder) and slide-ID (file)
-Version:    1.0 (2021-03-08)
 
 URL:        https://github.com/christianrickert/CU-HIMSR/
 
@@ -111,13 +110,14 @@ def unmerge_data(in_path='/home/user/', out_path='/home/user'):
 
 #  constants & variables
 
-IMPORT_FOLDER = r".\import"
 EXPORT_FOLDER = r".\export"
 FILE_TARGET = "Merge_cell_seg_data.txt"
+IMPORT_FOLDER = r".\import"
+VERSION = "phenoptrreports_mergefile_splitter 1.0 (2021-03-09)"
 
-# The folder structure, i.e. the name of the channel and batch folders needs to be
-# consistent across the project.
+#  main program
 
+println(VERSION)
 println(os.linesep)
 println("UNMERGING files in folder:")
 println("-----------------------")

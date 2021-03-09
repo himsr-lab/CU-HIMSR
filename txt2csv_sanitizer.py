@@ -22,7 +22,6 @@ Group:      Human Immune Monitoring Shared Resource (HIMSR)
 Title:      txt2csv_sanitizer
 Summary:    Sanitizes inForm export text files in preparation for
             CSV-to-FCS exports by replacing or removing invalid data
-Version:    1.0 (2021-03-08)
 
 URL:        https://github.com/christianrickert/CU-HIMSR/
 
@@ -160,16 +159,18 @@ def txt_to_csv(in_path='', delimiter_in='', out_path='', delimiter_out='', \
 
 DELIMITER_IN = "\t"  # input tabulator-delimited
 DELIMITER_OUT = ","  # output comma-delimited
+EXPORT_FOLDER = r".\export"
+FILE_TARGET = "_cell_seg_data.txt"
 HEADER_INCLUDE = [""]  # include all with list of empty string: [""]
 HEADER_EXLCUDE = []  # exclude none with empty list: []
 IMPORT_FOLDER = r".\import"
-EXPORT_FOLDER = r".\export"
-FILE_TARGET = "_cell_seg_data.txt"
 NANS = ["#N/A", "N/A", "NA", "NaN"]  # input not-a-number
 NAN = "NaN"  # output not-a-number
+VERSION = "txt2csv_sanitizer 1.0 (2021-03-09)"
 
 #  main program
 
+println(VERSION)
 println(os.linesep)
 println("Preparing files for export:")
 println("---------------------------")
