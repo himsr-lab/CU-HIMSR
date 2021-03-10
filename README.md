@@ -2,7 +2,7 @@
 ## The [Human Immune Monitoring Shared Resource](https://medschool.cuanschutz.edu/immunology-immunotherapy/himsr) at CU|AMC
 
 ### Software documentation
-The documentation of our scripts is located in the corresponding source code. You can view the source code in GitHub by following the links to each of the scripts.
+The documentation of our scripts is located in the corresponding source code: You can view the source code in GitHub by following the links to the scripts.
 
 ### Software requirements
 * Python scripts require a recent version of the [Python 3](https://www.python.org/downloads/) interpreter.
