@@ -104,7 +104,6 @@ def get_column_indices(path='', delimiter='', patterns=None, antipatterns=None, 
     """ Returns the indices of columns in a single line of a file containing valid data. """
     indices = []
     with open(path, 'r') as textfile:
-
         for line_index, line in enumerate(textfile):
             if line_index == 0:  # read header for pattern matching
                 headers = line.split(delimiter)
@@ -112,7 +111,6 @@ def get_column_indices(path='', delimiter='', patterns=None, antipatterns=None, 
                 data = line.split(delimiter)
             elif line_index > 1:  # stop iteration afterwards
                 break
-
     patterns = [matching_patterns(patterns, antipatterns, header) for header in headers]
     numbers = [matching_numbers(datum, nans) for datum in data]
 
@@ -136,10 +134,8 @@ def txt_to_csv(in_path='', delimiter_in='', out_path='', delimiter_out='', \
             out_array = ["", delimiter_out] * columns  # preallocate to minimize memory overhead
             out_array[-1] = "\n"  # carriage return
             with open(out_path + os.path.sep + name + ".csv", 'w') as out_file:
-
                 for count, line in enumerate(in_file):
                     column = -2  # export column index
-
                     for index, data in enumerate(line.split(delimiter_in)):
                         if index in indices:  # numerical data or nan
                             column += 2
@@ -151,7 +147,6 @@ def txt_to_csv(in_path='', delimiter_in='', out_path='', delimiter_out='', \
                                 elif data in nans:  # replace with default NaN
                                     data = nan
                                 out_array[column] = data
-
                     out_file.write("".join(out_array))
     return count
 

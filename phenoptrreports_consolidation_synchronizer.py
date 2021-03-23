@@ -133,10 +133,8 @@ def get_line_counts(path='/home/user/'):
     """ Returns the number of lines counted in a file. """
     with open(path, 'r') as text_file:
         count = 0
-
         for line, _content in enumerate(text_file):
             count = line
-
     count += 1
     return count
 
@@ -151,7 +149,6 @@ def sync_cell_ids(in_path='/home/user/', match_ids=None, out_path='/home/user/')
     with open(in_path, 'r') as in_file:  # non-synchronized file
         with open(out_path, 'w') as out_file:  # synchronized file
             offset = 0  #  offset to synced file, if lines were skipped
-
             for index, line in enumerate(in_file):
                 try:
                     check_id = line.split("\t")[4]
@@ -162,7 +159,6 @@ def sync_cell_ids(in_path='/home/user/', match_ids=None, out_path='/home/user/')
                         out_file.write(line)
                     else:
                         offset += 1
-
     return offset
 
 #  constants & variables
