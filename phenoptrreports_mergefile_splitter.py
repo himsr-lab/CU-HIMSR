@@ -21,16 +21,35 @@ Group:      Human Immune Monitoring Shared Resource (HIMSR)
 
 Title:      phenoptrreports_mergefile_splitter
 Summary:    Reverse the merging process and split merge data
-            by channel (folder) and slide-ID (file)
+            by channel (folder) and sample name (file)
 
 URL:        https://github.com/christianrickert/CU-HIMSR/
 
 Description:
 
 We split merge files into individual files by using the sample name
-(slide ID, first column) as a reference. Unmerged files can then be
-merged and consolidated separately in order to avoid prohibitive
-peak memory usage by phenoptrReports.
+(without coordinates) as a reference. Unmerged files can then be
+re-merged and consolidated separately in order to avoid
+prohibitive peak memory usage by phenoptrReports.
+Please organize your data in the following file system structure:
+
+/import/
+    ./Channel_A Merge_cell_seg_data.txt
+    ./Channel_B Merge_cell_seg_data.txt
+    ./Channel_C Merge_cell_seg_data.txt
+
+The single space between the channel label and the merge file is
+used to sort the output files into their corresponding folders:
+
+/export/
+    ./Channel_A/
+        ./Merge_cell_seg_data - *.txt
+    ./Channel_B/
+        ./Merge_cell_seg_data - *.txt
+    ./Channel_C/
+        ./Merge_cell_seg_data - *.txt
+
+The header lines are preserved for each of the unmerged files.
 """
 
 #  imports
@@ -73,38 +92,37 @@ def unmerge_data(in_path='/home/user/', out_path='/home/user'):
     """ Imports data from a text file and writes out all columns on a per-file basis
         using the first column's data for labeling of individual export files. """
     with open(in_path, 'r') as in_file:
-        channel = os.path.basename(in_path).split(" ")[0]
+        channel, name = os.path.splitext(os.path.basename(in_path))[0].split(" ")
         if not channel:
-            channel = "Unk"
+            channel = "NA"
         folder = out_path + os.path.sep + channel
         println("\tFOLDER: \"" + folder + "\"")
         if not os.path.exists(folder):
             os.mkdir(folder)
-        name = os.path.splitext(os.path.basename(in_path))[0].replace("Merge_cell_seg_data ", "")
-        println("\t\tSLIDES:")
+        println("\t\tSAMPLES:")
 
         for in_index, in_line in enumerate(in_file):
             if in_index == 0:  # header
                 file_data = []
                 header = in_line
                 file_data.append(header)
-                current_slide = ""
-                previous_slide = ""
+                current_sample = ""
+                previous_sample = ""
             else:  # data
-                current_slide = in_line.split("\t")[1][0:-7]
-                if current_slide != previous_slide and previous_slide:  # slide changed
+                current_sample = in_line.split("\t")[1].split("_")[0]  # without coordinates
+                if current_sample != previous_sample and previous_sample:  # sample changed
                     with open(folder + os.path.sep +\
-                              name + " - " + previous_slide + ".txt", 'a') as out_file:
+                              name + " - " + previous_sample + ".txt", 'a') as out_file:
                         for _out_index, out_line in enumerate(file_data):
                             out_file.write(out_line)
-                    println("\t\t\t\t\"" + current_slide + "\"")  # prepare next slide
+                    println("\t\t\t\t\"" + current_sample + "\"")  # prepare next sample
                     file_data = []
                     file_data.append(header)
-                previous_slide = current_slide
+                previous_sample = current_sample
                 file_data.append(in_line)
 
-        # write last slide before opening a new input file
-        with open(folder + os.path.sep + name + " - " + previous_slide + ".txt", 'a') as out_file:
+        # write last sample before opening a new input file
+        with open(folder + os.path.sep + name + " - " + previous_sample + ".txt", 'a') as out_file:
             for _out_index, out_line in enumerate(file_data):
                 out_file.write(out_line)
 
@@ -113,7 +131,7 @@ def unmerge_data(in_path='/home/user/', out_path='/home/user'):
 EXPORT_FOLDER = r".\export"
 FILE_TARGET = "Merge_cell_seg_data.txt"
 IMPORT_FOLDER = r".\import"
-VERSION = "phenoptrreports_mergefile_splitter 1.0 (2021-03-09)"
+VERSION = "phenoptrreports_mergefile_splitter 1.0 (2021-03-22)"
 
 #  main program
 
