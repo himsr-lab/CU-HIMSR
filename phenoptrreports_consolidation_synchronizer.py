@@ -39,27 +39,27 @@ files for missing cell IDs and remove surplus lines from the merge
 files of other channels, respectively.
 Please organize your data in the following file system structure:
 
-/export
-    ./channel a
-        ./batch 1
+/export/
+    ./channel a/
+        ./batch 1/
             ./*_cell_seg_data.txt
             ./Merge_cell_seg_data.txt
-        ./batch 2
-        ./batch 3
-    ./channel b
-        ./batch 1
+        ./batch 2/
+        ./batch 3/
+    ./channel b/
+        ./batch 1/
             ./*_cell_seg_data.txt
             ./Merge_cell_seg_data.txt
-        ./batch 2
-        ./batch 3
-    ./channel c
-        ./batch 1
+        ./batch 2/
+        ./batch 3/
+    ./channel c/
+        ./batch 1/
             ./*_cell_seg_data.txt
             ./Merge_cell_seg_data.txt
-        ./batch 2
-        ./batch 3
-    ./Stroma (ignored)
-    ./Tumor (ignored)
+        ./batch 2/
+        ./batch 3/
+    ./Stroma/ (ignored)
+    ./Tumor/ (ignored)
 
 The top-most folders in the export folder are the channel folders,
 which can have any name, but should not contain "Stroma" or "Tumor".
