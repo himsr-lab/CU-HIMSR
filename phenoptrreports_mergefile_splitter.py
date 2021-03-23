@@ -59,6 +59,12 @@ import sys
 
 #  functions
 
+def export_data(out_path='/home/user', out_data=None):
+    """ Writes data from an array to a file. """
+    with open(out_path, 'w') as out_file:
+        for out_line in out_data:
+            out_file.write(out_line)
+
 def flatten(deep_list=None):
     """ Returns a flattened list with elements from (deep) lists or tuples """
     flat_list = []
@@ -112,18 +118,15 @@ def unmerge_data(in_path='/home/user/', out_path='/home/user'):
                 if current_sample != previous_sample:  # sample changed
                     println("\t\t\t\t\"" + current_sample + "\"")
                     if previous_sample:  # save collected data
-                        with open(folder + os.path.sep +\
-                                  name + " - " + previous_sample + ".txt", 'a') as out_file:
-                            for _out_index, out_line in enumerate(file_data):
-                                out_file.write(out_line)
+                        export_data(out_path=folder + os.path.sep + name + \
+                                             " - " + previous_sample + ".txt", out_data=file_data)
                     file_data = []  # prepare next sample
                     file_data.append(header)
                 previous_sample = current_sample
                 file_data.append(in_line)
         # write last sample before opening a new input file
-        with open(folder + os.path.sep + name + " - " + previous_sample + ".txt", 'a') as out_file:
-            for _out_index, out_line in enumerate(file_data):
-                out_file.write(out_line)
+        export_data(out_path=folder + os.path.sep + name + \
+                             " - " + previous_sample + ".txt", out_data=file_data)
 
 #  constants & variables
 
