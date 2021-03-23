@@ -100,7 +100,6 @@ def unmerge_data(in_path='/home/user/', out_path='/home/user'):
         if not os.path.exists(folder):
             os.mkdir(folder)
         println("\t\tSAMPLES:")
-
         for in_index, in_line in enumerate(in_file):
             if in_index == 0:  # header
                 file_data = []
@@ -110,17 +109,17 @@ def unmerge_data(in_path='/home/user/', out_path='/home/user'):
                 previous_sample = ""
             else:  # data
                 current_sample = in_line.split("\t")[1].split("_")[0]  # without coordinates
-                if current_sample != previous_sample and previous_sample:  # sample changed
-                    with open(folder + os.path.sep +\
-                              name + " - " + previous_sample + ".txt", 'a') as out_file:
-                        for _out_index, out_line in enumerate(file_data):
-                            out_file.write(out_line)
-                    println("\t\t\t\t\"" + current_sample + "\"")  # prepare next sample
-                    file_data = []
+                if current_sample != previous_sample:  # sample changed
+                    println("\t\t\t\t\"" + current_sample + "\"")
+                    if previous_sample:  # save collected data
+                        with open(folder + os.path.sep +\
+                                  name + " - " + previous_sample + ".txt", 'a') as out_file:
+                            for _out_index, out_line in enumerate(file_data):
+                                out_file.write(out_line)
+                    file_data = []  # prepare next sample
                     file_data.append(header)
                 previous_sample = current_sample
                 file_data.append(in_line)
-
         # write last sample before opening a new input file
         with open(folder + os.path.sep + name + " - " + previous_sample + ".txt", 'a') as out_file:
             for _out_index, out_line in enumerate(file_data):
