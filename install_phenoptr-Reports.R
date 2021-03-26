@@ -3,7 +3,6 @@
 # Christian Rickert, 2021-03-26
 #
 
-
 # install R 4.0.4
 # see: https://cran.r-project.org/bin/windows/base/
 
@@ -13,17 +12,16 @@
 # install RStudio Desktop 1.4.1106
 # see: https://www.rstudio.com/products/rstudio/download/#download
 
-
 #
 # WARNING: Do NOT install or update (from source) packages!
 #
 
-# install phenoptr
-# see: https://akoyabio.github.io/phenoptr/
-
 # install devtools package
 if ( !require("devtools") )
   install.packages("devtools")
+
+# phenoptr
+# see: https://akoyabio.github.io/phenoptr/
 
 # install phenoptr plugin from GitHub
 # hint: do not update packages to newer (source) versions
@@ -38,8 +36,7 @@ devtools::install_github("akoyabio/tiff@master")
 # see: https://github.com/akoyabio/rtree/tree/master#installation
 devtools::install_github("akoyabio/rtree@BH_1.75")
 
-
-# install phenoptrReports plugin from GitHub
+# phenoptrReports
 # see: https://akoyabio.github.io/phenoptrReports/
 
 # install phenoptrReports plugin from GitHub
