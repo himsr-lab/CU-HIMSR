@@ -1,6 +1,6 @@
 #
 # phenoptr(Reports) Installation for Windows
-# Christian Rickert, 2021-03-26
+# Christian Rickert, 2021-04-01
 #
 
 # install R 4.0.4
@@ -24,13 +24,14 @@ if ( !require("devtools") )
 # see: https://akoyabio.github.io/phenoptr/
 
 # install phenoptr plugin from GitHub
-# hint: do not update packages to newer (source) versions
+# hint: new stable versions are located in the @master branch,
+# while new development versions are located in the @9000 branch
 devtools::install_github("akoyabio/phenoptr@master")
+#devtools::install_github("akoyabio/phenoptr@9000")
 
 # install tiff package for phenoptr
 # see: https://github.com/akoyabio/tiff/tree/master#installation
 devtools::install_github("akoyabio/tiff@master")
-#devtools::install_github("akoyabio/phenoptr@9000")
 
 # install rtree package for phenoptr
 # see: https://github.com/akoyabio/rtree/tree/master#installation
@@ -40,5 +41,7 @@ devtools::install_github("akoyabio/rtree@BH_1.75")
 # see: https://akoyabio.github.io/phenoptrReports/
 
 # install phenoptrReports plugin from GitHub
+# hint: new stable versions are located in the @master branch,
+# while new development versions are located in the @9000 branch
 devtools::install_github("akoyabio/phenoptrReports@master")
 #devtools::install_github("akoyabio/phenoptrReports@9000")
