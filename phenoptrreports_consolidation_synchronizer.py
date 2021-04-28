@@ -43,17 +43,14 @@ Please organize your data in the following file system structure:
     ./channel a/
         ./batch 1/
             ./*_cell_seg_data.txt
-            ./*_cell_seg_data_summary.txt
             ./Merge_cell_seg_data.txt
     ./channel b/
         ./batch 1/
             ./*_cell_seg_data.txt
-            ./*_cell_seg_data_summary.txt
             ./Merge_cell_seg_data.txt
     ./channel c/
         ./batch 1/
             ./*_cell_seg_data.txt
-            ./*_cell_seg_data_summary.txt
             ./Merge_cell_seg_data.txt
     ./Stroma/ (ignored)
     ./Tumor/ (ignored)
@@ -163,7 +160,7 @@ def sync_cell_ids(in_path='/home/user/', match_ids=None, out_path='/home/user/')
 BATCHES = []
 CHANNELS = []
 EXPORT_FOLDER = r".\export"
-FILE_TARGET = "_cell_seg_data"  # data and summaries required for consolidation
+FILE_TARGET = "_cell_seg_data.txt"  # data and summaries required for consolidation
 FOLDER_EXCLUSION = ["Stroma", "Tumor"]  # exclude folders with scoring information
 VERSION = "phenoptrreports_consolidation_synchronizer 1.1 (2021-04-28)"
 
