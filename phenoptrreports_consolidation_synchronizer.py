@@ -34,8 +34,8 @@ in other channels (folders). In this case, the consolidation fails
 and phenoptrReports throws an error that the line counts do not
 match. To work around this issue, we ensure that the export data
 contains only files from consensus regions, i.e. files that are
-present in all channel folders. In addition, we scan the merge
-files for missing cell IDs and remove surplus lines from the merge
+present in all channel folders. In addition, we scan the matching
+files for missing cell IDs and remove surplus lines from the
 files of other channels, respectively.
 Please organize your data in the following file system structure:
 
@@ -43,31 +43,28 @@ Please organize your data in the following file system structure:
     ./channel a/
         ./batch 1/
             ./*_cell_seg_data.txt
+            ./*_cell_seg_data_summary.txt
             ./Merge_cell_seg_data.txt
-        ./batch 2/
-        ./batch 3/
     ./channel b/
         ./batch 1/
             ./*_cell_seg_data.txt
+            ./*_cell_seg_data_summary.txt
             ./Merge_cell_seg_data.txt
-        ./batch 2/
-        ./batch 3/
     ./channel c/
         ./batch 1/
             ./*_cell_seg_data.txt
+            ./*_cell_seg_data_summary.txt
             ./Merge_cell_seg_data.txt
-        ./batch 2/
-        ./batch 3/
     ./Stroma/ (ignored)
     ./Tumor/ (ignored)
 
 The top-most folders in the export folder are the channel folders,
 which can have any name, but should not contain "Stroma" or "Tumor".
-The folders contained in the channel folders need to be named
-identical across channels, e.g. "batch" or "data" to be able to
+The batch folders contained in the channel folders need to be present
+and identical across channels, e.g. "batch" or "data" to be able to
 identify consensus regions for different batches.
 Both unmatched (non-consensus) channel files as well as unbalanced
-merge files with surplus lines are moved into subfolders of their
+files with surplus lines are moved into subfolders of their
 corresponding batch folders.
 """
 
@@ -168,8 +165,7 @@ CHANNELS = []
 EXPORT_FOLDER = r".\export"
 FILE_TARGET = "_cell_seg_data"  # data and summaries required for consolidation
 FOLDER_EXCLUSION = ["Stroma", "Tumor"]  # exclude folders with scoring information
-MERGE_FILE = "Merge_cell_seg_data.txt"
-VERSION = "phenoptrreports_consolidation_synchronizer 1.0 (2021-03-09)"
+VERSION = "phenoptrreports_consolidation_synchronizer 1.1 (2021-04-28)"
 
 #  main program
 
@@ -263,12 +259,11 @@ for channel in CHANNELS:
 println("UNMATCHED FILES: " + str(UNMATCHED_FILES) + ".")
 println(os.linesep)
 
-# We are checking the merge files for the minimum number of lines present throughout batches and
+# We are checking the matching files for the minimum number of lines present throughout batches and
 # channels, respectively. Counting lines is faster than comparing lines.
 
-println("Checking line counts in merge files (4/6):")
-println("------------------------------------------")
-FILE_TARGET = MERGE_FILE
+println("Checking line counts in matching files (4/6):")
+println("---------------------------------------------")
 println("FILE: \"*" + FILE_TARGET + "*\"")
 CHECKED_FILES = 0
 BATCH_FILE_MINS = {}  # file line (minimum) counts by batch
@@ -302,11 +297,11 @@ for batch in BATCHES:
 print("CHECKED FILES: " + str(CHECKED_FILES) + ".")
 println(os.linesep)
 
-# We can now identify merge files which have more lines than the consensus (minimum) line count.
-# Let's also backup those merge files in a subfolder within the batch folder of a given channnel.
+# We can now identify matching files which have more lines than the consensus (minimum) line count.
+# Let's also backup those matching files in a subfolder within the batch folder of a given channnel.
 
-println("Moving merge files with unbalanced lines to folder (5/6):")
-println("---------------------------------------------------------")
+println("Moving matching files with unbalanced lines to folder (5/6):")
+println("------------------------------------------------------------")
 UNBALANCED_FILES = 0
 FOLDER_TARGET = "unbalanced"
 println("FOLDER: \"" + FOLDER_TARGET + "\"")
@@ -341,8 +336,8 @@ println(os.linesep)
 # We can now remove surplus lines from the backup files by comparing their Cell IDs with the
 # corresponding consensus Cell IDs. However, we only compare against a single reference file.
 
-println("Removing unbalanced lines in merge files (6/6):")
-println("------------------------------------------------")
+println("Removing unbalanced lines in matching files (6/6):")
+println("--------------------------------------------------")
 UNBALANCED_LINES = 0
 println("FOLDER: \"" + FOLDER_TARGET + "\"")
 
