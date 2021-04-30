@@ -33,3 +33,15 @@ devtools::install_github("ParkerICI/premessa")
 # run Premessa
 library(premessa)
 paneleditor_GUI()
+
+# list of useful commands that help
+# to customize the work environment
+
+# set library location explicitly (manual library installation)
+.libPaths( c("C:\\Program Files\\R\\R-4.0.5\\library") )
+
+# set current working directory
+setwd("C:\\Users\\HIMSR staff\\Desktop\\data")
+
+# free unused memory
+gc()
