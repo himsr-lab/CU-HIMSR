@@ -3,7 +3,7 @@
 # Christian Rickert, 2021-04-29
 #
 
-# install R 4.0.4
+# install R 4.0.5
 # see: https://cran.r-project.org/bin/windows/base/
 
 # install RStudio Desktop 1.4.1106

@@ -1,9 +1,9 @@
 #
 # phenoptr(Reports) Installation for Windows
-# Christian Rickert, 2021-04-01
+# Christian Rickert, 2021-04-29
 #
 
-# install R 4.0.4
+# install R 4.0.5
 # see: https://cran.r-project.org/bin/windows/base/
 
 # install Rtools 40
