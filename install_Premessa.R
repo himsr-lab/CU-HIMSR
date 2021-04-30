@@ -13,6 +13,9 @@
 # WARNING: Do NOT install or update (from source) packages!
 #
 
+# set library location explicitly (customized library installation only)
+#.libPaths( c("C:\\Program Files\\R\\R-4.0.5\\library") )
+
 # install devtools package
 install.packages("devtools")
 
@@ -34,14 +37,11 @@ devtools::install_github("ParkerICI/premessa")
 library(premessa)
 paneleditor_GUI()
 
-# list of useful commands that help
-# to customize the work environment
-
-# set library location explicitly (manual library installation)
-.libPaths( c("C:\\Program Files\\R\\R-4.0.5\\library") )
-
 # set current working directory
-setwd("C:\\Users\\HIMSR staff\\Desktop\\data")
+#setwd("C:\\Users\\HIMSR staff\\Desktop\\data")
+
+# concatenate all FCS files in current folder (case-sensitive file names)
+#concatenate_fcs_files(list.files(path = ".", pattern="\\.fcs$"), output.file = "concatenated.fcs")
 
 # free unused memory
-gc()
+#gc()
