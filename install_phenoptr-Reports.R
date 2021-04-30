@@ -17,8 +17,7 @@
 #
 
 # install devtools package
-if ( !require("devtools") )
-  install.packages("devtools")
+install.packages("devtools")
 
 # phenoptr
 # see: https://akoyabio.github.io/phenoptr/
