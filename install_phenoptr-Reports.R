@@ -25,7 +25,7 @@ if ( !require("devtools") )
 
 # install phenoptr plugin from GitHub
 # hint: new stable versions are located in the @master branch,
-# while new development versions are located in the @9000 branch
+# and new development versions are located in the @9000 branch
 devtools::install_github("akoyabio/phenoptr@master")
 #devtools::install_github("akoyabio/phenoptr@9000")
 
@@ -42,6 +42,6 @@ devtools::install_github("akoyabio/rtree@BH_1.75")
 
 # install phenoptrReports plugin from GitHub
 # hint: new stable versions are located in the @master branch,
-# while new development versions are located in the @9000 branch
+# and new development versions are located in the @9000 branch
 devtools::install_github("akoyabio/phenoptrReports@master")
 #devtools::install_github("akoyabio/phenoptrReports@9000")
