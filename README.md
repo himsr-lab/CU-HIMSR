@@ -1,5 +1,5 @@
 # CU-HIMSR
-## The [Human Immune Monitoring Shared Resource](https://medschool.cuanschutz.edu/immunology-immunotherapy/himsr) at [CU](https://www.ucdenver.edu/)|[AMC](https://www.cuanschutz.edu/)
+## The [Human Immune Monitoring Shared Resource](https://medschool.cuanschutz.edu/immunology-immunotherapy/himsr)
 
 ### Software documentation
 The documentation of our scripts is located in the corresponding source code: You can view the source code on GitHub by following the links to the scripts.
