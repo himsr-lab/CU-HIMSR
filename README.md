@@ -6,6 +6,7 @@ The documentation of our scripts is located in the corresponding source code: Yo
 
 ### Software requirements
 * Python scripts require a recent version of the [Python 3](https://www.python.org/downloads/) interpreter.
+* R scripts require a recent version of [R](https://cran.r-project.org/bin/windows/base/). The installation of [RStudio](https://www.rstudio.com/products/rstudio/download/#download) is optional.
 
 ### Copyright notices
 [`phenoptr`](https://github.com/akoyabio/phenoptr), [`phenoptrReports`](https://github.com/akoyabio/phenoptrReports) are part of the Akoya Biosciences Phenoptics™ family of Quantitative Pathology Research Solutions.
