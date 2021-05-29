@@ -23,6 +23,7 @@ Title:      phenoptrreports_mergefile_splitter
 Summary:    Reverse the merging process and split merge data
             by channel (folder) and sample name (file)
 
+DOI:        https://doi.org/10.5281/zenodo.4741394
 URL:        https://github.com/christianrickert/CU-HIMSR/
 
 Description:

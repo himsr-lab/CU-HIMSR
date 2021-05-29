@@ -23,6 +23,7 @@ Title:      phenoptrreports_consolidation_synchronizer
 Summary:    Removes unmatched regions (files) and cells (lines)
             from inForm export data and merge files.
 
+DOI:        https://doi.org/10.5281/zenodo.4741394
 URL:        https://github.com/christianrickert/CU-HIMSR/
 
 Description:

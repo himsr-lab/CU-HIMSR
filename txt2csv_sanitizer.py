@@ -23,6 +23,7 @@ Title:      txt2csv_sanitizer
 Summary:    Sanitizes inForm export text files in preparation for
             CSV-to-FCS exports by replacing or removing invalid data
 
+DOI:        https://doi.org/10.5281/zenodo.4741394
 URL:        https://github.com/christianrickert/CU-HIMSR/
 
 Description:
