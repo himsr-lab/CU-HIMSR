@@ -34,7 +34,7 @@ devtools::install_github("akoyabio/tiff@master")
 
 # install rtree package for phenoptr
 # see: https://github.com/akoyabio/rtree/tree/master#installation
-devtools::install_github("akoyabio/rtree@Bmaster")
+devtools::install_github("akoyabio/rtree@master")
 
 # phenoptrReports
 # see: https://akoyabio.github.io/phenoptrReports/
