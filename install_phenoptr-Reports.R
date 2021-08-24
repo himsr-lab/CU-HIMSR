@@ -1,6 +1,6 @@
 #
 # phenoptr(Reports) Installation for Windows
-# Christian Rickert, 2021-07-01
+# Christian Rickert, 2021-08-24
 #
 
 # install R 4.1.0
@@ -29,8 +29,8 @@ devtools::install_github("akoyabio/phenoptr@master")
 #devtools::install_github("akoyabio/phenoptr@9000")
 
 # install tiff package for phenoptr
-# see: https://github.com/akoyabio/tiff/tree/master#installation
-devtools::install_github("akoyabio/tiff@master")
+# see: https://github.com/s-u/tiff
+install.packages("tiff")
 
 # install rtree package for phenoptr
 # see: https://github.com/akoyabio/rtree/tree/master#installation
