@@ -1,6 +1,6 @@
 #
 # Premessa Installation for Windows
-# Christian Rickert, 2021-04-29
+# Christian Rickert, 2021-08-29
 #
 
 # install R 4.0.5
@@ -14,7 +14,7 @@
 #
 
 # set library location explicitly (customized library installation only)
-#.libPaths( c("C:\\Program Files\\R\\R-4.0.5\\library") )
+#.libPaths( c(file.path("C:", "Program Files", "R", "R-4.0.5", "library", fsep=.Platform$file.sep)) )
 
 # install devtools package
 install.packages("devtools")
@@ -38,7 +38,7 @@ library(premessa)
 paneleditor_GUI()
 
 # set current working directory
-#setwd("C:\\Users\\HIMSR staff\\Desktop\\data")
+#setwd(file.path("C:", "Users", "HIMSR staff", "Desktop", "data", fsep=.Platform$file.sep))
 
 # concatenate all FCS files in current folder (case-sensitive file names)
 #concatenate_fcs_files(list.files(path = ".", pattern="\\.fcs$"), output.file = "concatenated.fcs")
