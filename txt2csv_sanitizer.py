@@ -158,11 +158,11 @@ DELIMITER_OUT = ","  # output comma-delimited
 EXPORT_FOLDER = r".\export"
 FILE_TARGET = "_cell_seg_data.txt"
 HEADER_INCLUDE = [""]  # include all with list of empty string: [""]
-HEADER_EXLCUDE = []  # exclude none with empty list: []
+HEADER_EXCLUDE = []  # exclude none with empty list: []
 IMPORT_FOLDER = r".\import"
 NANS = ["#N/A", "N/A", "NA", "NaN"]  # input not-a-number
 NAN = "NaN"  # output not-a-number
-VERSION = "txt2csv_sanitizer 1.0 (2021-03-09)"
+VERSION = "txt2csv_sanitizer 1.0 (2021-10-11)"
 
 #  main program
 
@@ -179,7 +179,7 @@ if not os.path.exists(EXPORT_FOLDER):
 for file in get_files(IMPORT_FOLDER, FILE_TARGET):
     println("\tNAME: \"" + file)
     column_indices = get_column_indices(path=file, delimiter=DELIMITER_IN, \
-                                        patterns=HEADER_INCLUDE, antipatterns=HEADER_EXLCUDE, \
+                                        patterns=HEADER_INCLUDE, antipatterns=HEADER_EXCLUDE, \
                                         nans=NANS)
     println("\t\tCOLUMNS: " + str(len(column_indices)))
     line_count = txt_to_csv(in_path=file, delimiter_in=DELIMITER_IN, \
