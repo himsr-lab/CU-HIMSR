@@ -21,7 +21,7 @@ Group:      Human Immune Monitoring Shared Resource (HIMSR)
 
 Title:      phenoptrreports_mergefile_splitter
 Summary:    Reverse the merging process and split merge data
-            by channel (folder) and sample name (file)
+            by sample name and/or MSI coordinates
 
 DOI:        https://doi.org/10.5281/zenodo.4741394
 URL:        https://github.com/christianrickert/CU-HIMSR/
@@ -29,27 +29,10 @@ URL:        https://github.com/christianrickert/CU-HIMSR/
 Description:
 
 We split merge files into individual files by using the sample name
-(without coordinates) as a reference. Unmerged files can then be
-re-merged and consolidated separately in order to avoid
-prohibitive peak memory usage by phenoptrReports.
-Please organize your data in the following file system structure:
-
-/import/
-    ./Channel_A Merge_cell_seg_data.txt
-    ./Channel_B Merge_cell_seg_data.txt
-    ./Channel_C Merge_cell_seg_data.txt
-
-The single space between the channel label and the merge file is
-used to sort the output files into their corresponding folders:
-
-/export/
-    ./Channel_A/
-        ./Merge_cell_seg_data - *.txt
-    ./Channel_B/
-        ./Merge_cell_seg_data - *.txt
-    ./Channel_C/
-        ./Merge_cell_seg_data - *.txt
-
+and, upon request, also the sample's MSI coordinates.
+Unmerged files can either be used to convert sets of samples/MSIs
+into flow cytometry standard files or to re-merge and consolidate
+smaller data subsets.
 The header lines are preserved for each of the unmerged files.
 """
 
@@ -90,22 +73,34 @@ def get_files(path='/home/user/', pattern='', recursive=False):
                         get_files(path=fileobject.path, pattern=pattern, recursive=recursive))
     return flatten(files)
 
+def get_name_index(path='', delimiter='', name=None):
+    """ Returns the column index with the sample/MSI name. """
+    with open(path, 'r') as textfile:
+        for line_index, line in enumerate(textfile):
+            if line_index == 0:  # read header for pattern matching
+                headers = line.split(delimiter)
+            else:  # stop iteration afterwards
+                break
+
+    for index, column in enumerate(headers):
+        if column == name:
+            return index  # index found
+
+    return float("nan")  # no index found
+
 def println(string=""):
     """ Prints a string and forces immediate output. """
     print(string)
     sys.stdout.flush()
 
-def unmerge_data(in_path='/home/user/', out_path='/home/user'):
+def unmerge_data(in_path='', index=0, by_msi=False, out_path=''):
     """ Imports data from a text file and writes out all columns on a per-file basis
         using the first column's data for labeling of individual export files. """
     with open(in_path, 'r') as in_file:
-        channel, name = os.path.splitext(os.path.basename(in_path))[0].split(" ")
-        if not channel:
-            channel = "NA"
-        folder = out_path + os.path.sep + channel
-        println("\tFOLDER: \"" + folder + "\"")
-        if not os.path.exists(folder):
-            os.mkdir(folder)
+        name = os.path.splitext(os.path.basename(in_path))[0]
+        println("\tFOLDER: \"" + out_path + "\"")
+        if not os.path.exists(out_path):
+            os.mkdir(out_path)
         println("\t\tSAMPLES:")
         for in_index, in_line in enumerate(in_file):
             if in_index == 0:  # header
@@ -115,18 +110,20 @@ def unmerge_data(in_path='/home/user/', out_path='/home/user'):
                 current_sample = ""
                 previous_sample = ""
             else:  # data
-                current_sample = in_line.split("\t")[1].split("_")[0]  # without coordinates
-                if current_sample != previous_sample:  # sample changed
+                current_sample = in_line.split("\t")[index].rsplit(sep=".", maxsplit=1)[0]
+                if not by_msi:  # ignore MSI coordinates
+                    current_sample = current_sample.rsplit(sep="_", maxsplit=1)[0]
+                if current_sample != previous_sample:  # sample name or MSI coordinates changed
                     println("\t\t\t\t\"" + current_sample + "\"")
                     if previous_sample:  # save collected data
-                        export_data(out_path=folder + os.path.sep + name + \
+                        export_data(out_path=out_path + os.path.sep + name + \
                                              " - " + previous_sample + ".txt", out_data=file_data)
                     file_data = []  # prepare next sample
                     file_data.append(header)
                 previous_sample = current_sample
                 file_data.append(in_line)
         # write last sample before opening a new input file
-        export_data(out_path=folder + os.path.sep + name + \
+        export_data(out_path=out_path + os.path.sep + name + \
                              " - " + previous_sample + ".txt", out_data=file_data)
 
 #  constants & variables
@@ -134,7 +131,8 @@ def unmerge_data(in_path='/home/user/', out_path='/home/user'):
 EXPORT_FOLDER = r".\export"
 FILE_TARGET = "Merge_cell_seg_data.txt"
 IMPORT_FOLDER = r".\import"
-VERSION = "phenoptrreports_mergefile_splitter 1.0 (2021-03-22)"
+SPLIT_BY_MSI = False  # split by name *and* MSI coordinates
+VERSION = "phenoptrreports_mergefile_splitter 1.0 (2021-10-12)"
 
 #  main program
 
@@ -150,7 +148,8 @@ if not os.path.exists(EXPORT_FOLDER):
 
 for file in get_files(IMPORT_FOLDER, FILE_TARGET):
     println("\tNAME: \"" + file + "\"")
-    unmerge_data(in_path=file, out_path=EXPORT_FOLDER)
+    name_index = get_name_index(path=file, delimiter='\t', name="Sample Name")
+    unmerge_data(in_path=file, index=name_index, by_msi=SPLIT_BY_MSI, out_path=EXPORT_FOLDER)
     FILE_COUNT += 1
 
 print("UNMERGED FILES: " + str(FILE_COUNT) + ".")
