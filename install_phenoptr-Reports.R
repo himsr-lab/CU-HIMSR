@@ -1,15 +1,15 @@
 #
 # phenoptr(Reports) Installation for Windows
-# Christian Rickert, 2022-10-10
+# Christian Rickert, 2022-01-11
 #
 
-# install R 4.1.1 or later
+# install R 4.1.2 or later
 # see: https://cran.r-project.org/bin/windows/base/
 
-# install Rtools 40 or later
+# install Rtools 4.0.0 or later
 # see: https://cran.r-project.org/bin/windows/Rtools/
 
-# install RStudio Desktop 1.4.1717 or later
+# install RStudio Desktop 2021.09.2+382 or later
 # see: https://www.rstudio.com/products/rstudio/download/#download
 
 #
@@ -25,9 +25,9 @@ install.packages("devtools")
 
 # install phenoptr plugin from GitHub
 # hint: versions compatible with inForm version 2.5 (or earlier)
-# are located in the @head branch, while versions compatible
-# with inForm 2.6 (or later) are located in the @9000 branch
-#devtools::install_github("akoyabio/phenoptr")
+# are located in the main branch, while versions compatible
+# with inForm 2.6 (or later) are located in the 9000 branch
+#devtools::install_github("akoyabio/phenoptr@main")
 devtools::install_github("akoyabio/phenoptr@9000")
 
 # install tiff package for phenoptr
@@ -42,7 +42,7 @@ devtools::install_github("akoyabio/rtree@master")
 # see: https://akoyabio.github.io/phenoptrReports/
 
 # install phenoptrReports plugin from GitHub
-# hint: new stable versions are located in the @head branch,
+# hint: new stable versions are located in the main branch,
 # and new development versions are located in the @9000 branch
-devtools::install_github("akoyabio/phenoptrReports@head")
+devtools::install_github("akoyabio/phenoptrReports@main")
 #devtools::install_github("akoyabio/phenoptrReports@9000")
