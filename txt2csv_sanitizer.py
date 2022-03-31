@@ -86,19 +86,18 @@ def matching_numbers(string='', nans=None):
     """ Checks if a string is numerical or a percentage or in the list of
         not-a-number entries and returns the result as a boolean value """
     number = False
-    perc = "%"
     try:
         math.isnan(float(string))  # cast string to float and check for Python "NaN"
         number = True
     except ValueError:
-        if string.endswith(perc) or string in nans:  # percentage or invalid NaN
+        if string.endswith(PERCENTAGE) or string in nans:  # percentage or invalid NaN
             number = True
     return number
 
 def matching_patterns(patterns=None, antipatterns=None, string=''):
     """ Returns the matching status for a string using lists of patterns and antipatterns. """
     pattern = bool(True in [(pattern in string) for pattern in patterns] and \
-                 not True in [(antipattern in string) for antipattern in antipatterns])
+                   not True in [(antipattern in string) for antipattern in antipatterns])
     return pattern
 
 def get_column_indices(path='', delimiter='', patterns=None, antipatterns=None, nans=None):
@@ -127,13 +126,12 @@ def txt_to_csv(in_path='', delimiter_in='', out_path='', delimiter_out='', \
         before exporting a numerical-data csv file for use with R, for example. """
     columns = len(indices)
     count = 0
-    perc = "%"
     if columns > 0:
         with open(in_path, 'r') as in_file:
             base = os.path.basename(in_path)
             name = os.path.splitext(base)[0]
             out_array = ["", delimiter_out] * columns  # preallocate to minimize memory overhead
-            out_array[-1] = "\n"  # carriage return
+            out_array.pop(-1)  # clear last delimiter
             with open(out_path + os.path.sep + name + ".csv", 'w') as out_file:
                 for count, line in enumerate(in_file):
                     column = -2  # export column index
@@ -143,11 +141,13 @@ def txt_to_csv(in_path='', delimiter_in='', out_path='', delimiter_out='', \
                             if count == 0:  # fix header issues
                                 out_array[column] = data.replace(delimiter_out, "")
                             else:
-                                if data.endswith(perc):  # remove percentage sign
+                                if data.endswith(PERCENTAGE):  # remove inForm's percentage sign
                                     data = data[:-1]
-                                elif data in nans:  # replace with default NaN
+                                elif data in nans:  # replace inForm's version of NULL type
                                     data = nan
                                 out_array[column] = data
+                    if not out_array[-1].endswith(LINEFEED):  # possible artifact removing last column
+                        out_array.append(LINEFEED)
                     out_file.write("".join(out_array))
     return count
 
@@ -155,14 +155,16 @@ def txt_to_csv(in_path='', delimiter_in='', out_path='', delimiter_out='', \
 
 DELIMITER_IN = "\t"  # input tabulator-delimited
 DELIMITER_OUT = ","  # output comma-delimited
-EXPORT_FOLDER = r".\export"
+EXPORT_FOLDER = r".\export"  # will be created
 FILE_TARGET = "_cell_seg_data.txt"
 HEADER_INCLUDE = [""]  # include all with list of empty string: [""]
 HEADER_EXCLUDE = []  # exclude none with empty list: []
-IMPORT_FOLDER = r".\import"
+IMPORT_FOLDER = r".\import"  # must exist
+LINEFEED = "\n"
 NANS = ["#N/A", "N/A", "NA", "NaN"]  # input not-a-number
 NAN = "NaN"  # output not-a-number
-VERSION = "txt2csv_sanitizer 1.0 (2021-10-11)"
+PERCENTAGE = "%"
+VERSION = "txt2csv_sanitizer 1.0 (2022-03-30)"
 
 #  main program
 
