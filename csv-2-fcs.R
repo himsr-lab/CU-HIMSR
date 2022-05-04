@@ -18,7 +18,7 @@
 #
 #  Title:     csv-2-fcs
 #  Summary:   Converts text files into flow cytometry standard files
-#  Version:   1.0 (2022-05-03)
+#  Version:   1.0 (2022-05-04)
 #
 #  DOI:       https://doi.org/10.5281/zenodo.4741394
 #  URL:       https://github.com/christianrickert/CU-HIMSR/
@@ -123,8 +123,8 @@ for (importFile in importFileNames) {
   # convert data table columns to numeric, if user-specified, else mark for deletion
   deleteColumns <- c()
   if (length(includeColumns) > 0) {
-    as.numeric(names(fileData) %in% includeColumns)
     deleteColumns <- names(fileData)[!names(fileData) %in% includeColumns]
+    fileData[, (includeColumns) := lapply(.SD, as.numeric), .SDcols = includeColumns]
   }
 
   # filter data table by column names, optional (by-reference operation, fast)
@@ -147,12 +147,13 @@ for (importFile in importFileNames) {
   # replace NA and #N/A values in numeric columns with zero (in-place, but very slow)
   if (replaceNA == TRUE) {
     catflush(paste("    Replacing... "))
+    na = NA
     zero <- 0.0
     if(exportPrecision == "integer") {zero <- 0}
     columns <- seq_along(fileData)
     for (c in columns) {
       set(fileData,
-          i = which(is.na(fileData[[c]])),
+          i = match(na, fileData[[c]]),
           j = c,
           value = zero)
     }
@@ -201,6 +202,9 @@ for (importFile in importFileNames) {
     catflush(paste("done\n"))
     remove(flowTable)
   }
+
+  # run JAVA VM garbage collection
+  gc(full = TRUE)
 
   count <- count + 1
 }
