@@ -18,7 +18,7 @@
 #
 #  Title:     csv-2-fcs
 #  Summary:   Converts text files into flow cytometry standard files
-#  Version:   1.0 (2022-05-04)
+#  Version:   1.0 (2022-05-05)
 #
 #  DOI:       https://doi.org/10.5281/zenodo.4741394
 #  URL:       https://github.com/christianrickert/CU-HIMSR/
@@ -32,8 +32,9 @@
 #  columns and will remove all non-numeric columns before exporting.
 #  Special characters in numeric columns will be replaced with zeros.
 #  While the script aims at minimizing its memory footprint and, please
-#  keep in mind that it will use approximately two times the input data
-#  size from your system memory, depending on your selected input data.
+#  keep in mind that it will use at minimum the input data size after
+#  reading and at maximum two times the input data size during conversion,
+#  depending on your selection of the desired output data.
 #  Furthermore, performance will also depend on your data input source
 #  (SSD > HDD > network) and your operating system: MacOS is using only
 #  a single-threaded version of 'data.table' by default. However, a
@@ -80,14 +81,14 @@ catflush <- function(string) {
 # set input and output variables
 currentFolder   <- dirname(rstudioapi::getSourceEditorContext()$path)  # script location
 importFolder    <- file.path(currentFolder, "import", fsep = .Platform$file.sep)  # relative path
-importPattern   <- "\\.csv$|\\.txt$"  # file extension expression (case-insensitive)
-importSeparator <- "auto"  # separator with highest row-consistent split count is used
+importPattern   <- "\\.csv$|\\.txt$"  # file extension search expression (case-insensitive)
+importSeparator <- "auto"  # alternatively, set to fixed value of "," (comma) or "\t" (tabulator)
 includeColumns  <- c()  # include columns, exclusively, by name before export (case-sensitive)
 excludeColumns  <- c()  # exclude columns by name before export (case-sensitive)
 exportFolder    <- file.path(currentFolder, "export", fsep = .Platform$file.sep)
 exportPrecision <- "double"  # any of "integer", "numeric", "double"
-replaceNA       <- TRUE  # replace NA in numeric columns with 0 before export
-revertResult    <- FALSE  # convert the result file back into a csv file
+replaceNA       <- TRUE  # replace NA in numeric columns with zero before export
+revertResult    <- TRUE  # convert the result file back into a csv file
 
 #
 #  Main program
@@ -115,6 +116,7 @@ for (importFile in importFileNames) {
   setwd(importFolder)
   catflush(paste("    Reading...\n"))
   fileData <- fread(file = importFile,
+                    na.strings = getOption("datatable.na.strings","NA"),
                     nThread = getDTthreads(),
                     sep = importSeparator,
                     verbose = FALSE)
@@ -144,19 +146,11 @@ for (importFile in importFileNames) {
   if (length(nonNumericColumns) > 0) {fileData[, (nonNumericColumns) := NULL]}
   catflush(paste("done\n"))
 
-  # replace NA and #N/A values in numeric columns with zero (in-place, but very slow)
+  # replace NA and #N/A values in numeric columns with zero (in-place, but slow)
   if (replaceNA == TRUE) {
     catflush(paste("    Replacing... "))
-    na = NA
-    zero <- 0.0
-    if(exportPrecision == "integer") {zero <- 0}
-    columns <- seq_along(fileData)
-    for (c in columns) {
-      set(fileData,
-          i = match(na, fileData[[c]]),
-          j = c,
-          value = zero)
-    }
+    if(exportPrecision == "integer") {zero <- 0} else {zero <- 0.0}
+    setnafill(fileData, type=c('const'), fill = zero)
     catflush(paste("done\n"))
   }
 
@@ -191,16 +185,16 @@ for (importFile in importFileNames) {
 
     # convert flow frame into data table
     catflush(paste("    Converting... "))
-    flowTable <- exprs(flowData)
+    flowMatrix <- exprs(flowData)
     catflush(paste("done\n"))
     remove(flowData)
 
     # write data table into data file
     catflush(paste("    Writing... "))
-    write.csv(flowTable,
+    write.csv(flowMatrix,
               revertFile)
     catflush(paste("done\n"))
-    remove(flowTable)
+    remove(flowMatrix)
   }
 
   # run JAVA VM garbage collection
@@ -210,6 +204,10 @@ for (importFile in importFileNames) {
 }
 
 # Clearing R environment
-rm(list=ls())
+rm(list=c('catflush', 'count', 'currentFolder', 'deleteColumns',
+          'excludeColumns', 'exportFile', 'exportFolder', 'exportPrecision',
+          'importFile', 'importFileNames', 'importFileNamesLength', 'importFolder',
+          'importPattern', 'importSeparator', 'includeColumns', 'nonNumericColumns',
+          'removeColumns', 'replaceNA', 'revertFile', 'revertResult', 'zero'))
 
 # Run complete
