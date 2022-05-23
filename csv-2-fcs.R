@@ -18,7 +18,7 @@
 #
 #  Title:     csv-2-fcs
 #  Summary:   Converts text files into flow cytometry standard files
-#  Version:   1.0 (2022-05-05)
+#  Version:   1.0 (2022-05-23)
 #
 #  DOI:       https://doi.org/10.5281/zenodo.4741394
 #  URL:       https://github.com/christianrickert/CU-HIMSR/
@@ -30,8 +30,8 @@
 #  (*.fcs) based on the the FCS 3.0 specifications using 'flowCore'.
 #  The script can specifically include and/or exclude user-specified
 #  columns and will remove all non-numeric columns before exporting.
-#  Special characters in numeric columns will be replaced with zeros.
-#  While the script aims at minimizing its memory footprint and, please
+#  Non-numeric entries in numeric columns will be replaced with zeros.
+#  While the script aims at minimizing its memory footprint, but please
 #  keep in mind that it will use at minimum the input data size after
 #  reading and at maximum two times the input data size during conversion,
 #  depending on your selection of the desired output data.
@@ -88,7 +88,7 @@ excludeColumns  <- c()  # exclude columns by name before export (case-sensitive)
 exportFolder    <- file.path(currentFolder, "export", fsep = .Platform$file.sep)
 exportPrecision <- "double"  # any of "integer", "numeric", "double"
 replaceNA       <- TRUE  # replace NA in numeric columns with zero before export
-revertResult    <- TRUE  # convert the result file back into a csv file
+revertResult    <- FALSE  # convert the result file back into a csv file
 
 #
 #  Main program
@@ -173,6 +173,7 @@ for (importFile in importFileNames) {
   catflush(paste("done\n"))
   remove(flowData)
 
+  # revert file conversion for quality control, optional
   if (revertResult == TRUE && isFCSfile(exportFile) == TRUE) {
     revertFile = paste(sub("\\.fcs$", "", exportFile), ".csv", sep = "")
     catflush(paste("  Revert:", revertFile, "\n"))
@@ -189,7 +190,7 @@ for (importFile in importFileNames) {
     catflush(paste("done\n"))
     remove(flowData)
 
-    # write data table into data file
+    # write data table into data file, slow
     catflush(paste("    Writing... "))
     write.csv(flowMatrix,
               revertFile)
@@ -203,7 +204,7 @@ for (importFile in importFileNames) {
   count <- count + 1
 }
 
-# Clearing R environment
+# clear R environment
 rm(list=c('catflush', 'count', 'currentFolder', 'deleteColumns',
           'excludeColumns', 'exportFile', 'exportFolder', 'exportPrecision',
           'importFile', 'importFileNames', 'importFileNamesLength', 'importFolder',
