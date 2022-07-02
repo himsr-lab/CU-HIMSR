@@ -18,7 +18,7 @@
 #
 #  Title:     csv-2-fcs
 #  Summary:   Converts text files into flow cytometry standard files
-#  Version:   1.0 (2022-05-23)
+#  Version:   1.0 (2022-07-02)
 #
 #  DOI:       https://doi.org/10.5281/zenodo.4741394
 #  URL:       https://github.com/christianrickert/CU-HIMSR/
@@ -31,7 +31,7 @@
 #  The script can specifically include and/or exclude user-specified
 #  columns and will remove all non-numeric columns before exporting.
 #  Non-numeric entries in numeric columns will be replaced with zeros.
-#  While the script aims at minimizing its memory footprint, but please
+#  While the script aims at minimizing its memory footprint, please
 #  keep in mind that it will use at minimum the input data size after
 #  reading and at maximum two times the input data size during conversion,
 #  depending on your selection of the desired output data.
@@ -39,7 +39,7 @@
 #  (SSD > HDD > network) and your operating system: MacOS is using only
 #  a single-threaded version of 'data.table' by default. However, a
 #  multi-threaded version can be installed manually:
-#  [https://github.com/Rdatatable/data.table/wiki/Installation]
+#  [https://gist.github.com/christianrickert/8c1634a7f749589ff915368f66869aa1]
 #     Copy the script to your target location and run it for first time
 #  to create an 'import' and an 'export' folder. Then place your text
 #  files into the 'import' folder and confirm the script's variables.
@@ -111,7 +111,7 @@ importFileNamesLength <- length(importFileNames)
 for (importFile in importFileNames) {
   catflush(paste("\nFile: ", count, "/", importFileNamesLength, "\n", sep = ""))
   catflush(paste("  Import:", importFile, "\n"))
-
+  
   # read file data as data table
   setwd(importFolder)
   catflush(paste("    Reading...\n"))
@@ -121,14 +121,14 @@ for (importFile in importFileNames) {
                     sep = importSeparator,
                     verbose = FALSE)
   catflush(paste("    done\n"))
-
+  
   # convert data table columns to numeric, if user-specified, else mark for deletion
   deleteColumns <- c()
   if (length(includeColumns) > 0) {
     deleteColumns <- names(fileData)[!names(fileData) %in% includeColumns]
     fileData[, (includeColumns) := lapply(.SD, as.numeric), .SDcols = includeColumns]
   }
-
+  
   # filter data table by column names, optional (by-reference operation, fast)
   removeColumns <- c()
   if (length(deleteColumns) > 0 || length(excludeColumns) > 0) {
@@ -139,13 +139,13 @@ for (importFile in importFileNames) {
     fileData[, (removeColumns) := NULL]
     catflush(paste("done\n"))
   }
-
+  
   # filter data table by columns with non-numeric values, mandatory
   catflush(paste("    Checking... "))
   nonNumericColumns <- names(which(sapply(fileData, Negate(is.numeric))))
   if (length(nonNumericColumns) > 0) {fileData[, (nonNumericColumns) := NULL]}
   catflush(paste("done\n"))
-
+  
   # replace NA and #N/A values in numeric columns with zero (in-place, but slow)
   if (replaceNA == TRUE) {
     catflush(paste("    Replacing... "))
@@ -153,13 +153,13 @@ for (importFile in importFileNames) {
     setnafill(fileData, type=c('const'), fill = zero)
     catflush(paste("done\n"))
   }
-
+  
   # create flow frame from data table (copy operation, slow)
   catflush(paste("    Converting... "))
   flowData <- new("flowFrame", exprs = as.matrix(fileData))
   catflush(paste("done\n"))
   remove(fileData)
-
+  
   # write flow frame into flow file
   setwd(exportFolder)
   exportFile = paste(sub(importPattern, "", importFile), ".fcs", sep = "")
@@ -172,24 +172,24 @@ for (importFile in importFileNames) {
             endian = "big")
   catflush(paste("done\n"))
   remove(flowData)
-
+  
   # revert file conversion for quality control, optional
   if (revertResult == TRUE && isFCSfile(exportFile) == TRUE) {
     revertFile = paste(sub("\\.fcs$", "", exportFile), ".csv", sep = "")
     catflush(paste("  Revert:", revertFile, "\n"))
-
+    
     # read new flow frame from flow file
     catflush(paste("    Reading... "))
     flowData <- read.FCS(exportFile,
                          transformation = FALSE)
     catflush(paste("done\n"))
-
+    
     # convert flow frame into data table
     catflush(paste("    Converting... "))
     flowMatrix <- exprs(flowData)
     catflush(paste("done\n"))
     remove(flowData)
-
+    
     # write data table into data file, slow
     catflush(paste("    Writing... "))
     write.csv(flowMatrix,
@@ -197,18 +197,20 @@ for (importFile in importFileNames) {
     catflush(paste("done\n"))
     remove(flowMatrix)
   }
-
+  
   # run JAVA VM garbage collection
   gc(full = TRUE)
-
+  
   count <- count + 1
 }
 
 # clear R environment
+pow <- getOption("warn"); options(warn = -1)
 rm(list=c('catflush', 'count', 'currentFolder', 'deleteColumns',
           'excludeColumns', 'exportFile', 'exportFolder', 'exportPrecision',
           'importFile', 'importFileNames', 'importFileNamesLength', 'importFolder',
           'importPattern', 'importSeparator', 'includeColumns', 'nonNumericColumns',
           'removeColumns', 'replaceNA', 'revertFile', 'revertResult', 'zero'))
+options(warn = pow); rm(pow)
 
 # Run complete
