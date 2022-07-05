@@ -114,13 +114,13 @@ for (importFile in importFileNames) {
   
   # read file data as data table
   setwd(importFolder)
-  catflush(paste("    Reading...\n"))
+  catflush(paste("    Reading..."))
   fileData <- fread(file = importFile,
                     na.strings = getOption("datatable.na.strings","NA"),
                     nThread = getDTthreads(),
                     sep = importSeparator,
                     verbose = FALSE)
-  catflush(paste("    done\n"))
+  catflush(paste("done\n"))
   
   # convert data table columns to numeric, if user-specified, else mark for deletion
   deleteColumns <- c()
