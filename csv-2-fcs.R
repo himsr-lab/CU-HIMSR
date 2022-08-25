@@ -18,7 +18,7 @@
 #
 #  Title:     csv-2-fcs
 #  Summary:   Converts text files into flow cytometry standard files
-#  Version:   1.0 (2022-07-02)
+#  Version:   1.0 (2022-08-25)
 #
 #  DOI:       https://doi.org/10.5281/zenodo.4741394
 #  URL:       https://github.com/christianrickert/CU-HIMSR/
