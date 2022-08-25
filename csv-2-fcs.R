@@ -192,8 +192,8 @@ for (importFile in importFileNames) {
     
     # write data table into data file, slow
     catflush(paste("    Writing... "))
-    write.csv(flowMatrix,
-              revertFile)
+    fwrite(flowMatrix,
+           revertFile)
     catflush(paste("done\n"))
     remove(flowMatrix)
   }
