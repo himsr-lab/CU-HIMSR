@@ -18,7 +18,7 @@
 #
 #  Title:     csv-2-fcs
 #  Summary:   Converts text files into flow cytometry standard files
-#  Version:   1.0 (2022-08-25)
+#  Version:   1.0 (2022-10-23)
 #
 #  DOI:       https://doi.org/10.5281/zenodo.4741394
 #  URL:       https://github.com/christianrickert/CU-HIMSR/
@@ -192,7 +192,7 @@ for (importFile in importFileNames) {
     
     # write data table into data file, slow
     catflush(paste("    Writing... "))
-    fwrite(flowMatrix,
+    fwrite(as.data.table(flowMatrix),
            revertFile)
     catflush(paste("done\n"))
     remove(flowMatrix)
