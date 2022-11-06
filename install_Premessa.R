@@ -1,20 +1,13 @@
 #
 # Premessa Installation for Windows
-# Christian Rickert, 2021-08-29
+# Christian Rickert, 2022-11-05
 #
 
-# install R 4.0.5
+# install R 4.2.2 for Windows
 # see: https://cran.r-project.org/bin/windows/base/
 
-# install RStudio Desktop 1.4.1106
-# see: https://www.rstudio.com/products/rstudio/download/#download
-
-#
-# WARNING: Do NOT install or update (from source) packages!
-#
-
-# set library location explicitly (customized library installation only)
-#.libPaths( c(file.path("C:", "Program Files", "R", "R-4.0.5", "library", fsep=.Platform$file.sep)) )
+# install Rtools42 for Windows
+# see: https://cran.r-project.org/bin/windows/Rtools/rtools42/rtools.html
 
 # install devtools package
 install.packages("devtools")
@@ -41,7 +34,7 @@ paneleditor_GUI()
 #setwd(file.path("C:", "Users", "HIMSR staff", "Desktop", "data", fsep=.Platform$file.sep))
 
 # concatenate all FCS files in current folder (case-sensitive file names)
-#concatenate_fcs_files(list.files(path = ".", pattern="\\.fcs$"), output.file = "concatenated.fcs")
+#concatenate_fcs_files(list.files(path = ".", pattern="\\.fcs$"), output.file = "concatenated.FCS")
 
 # free unused memory
 #gc()
