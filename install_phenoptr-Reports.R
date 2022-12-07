@@ -1,6 +1,6 @@
 #
 # phenoptr(Reports) Installation for Windows
-# Christian Rickert, 2022-01-11
+# Christian Rickert, 2022-12-07
 #
 
 # install R 4.1.2 or later
@@ -44,5 +44,5 @@ devtools::install_github("akoyabio/rtree@master")
 # install phenoptrReports plugin from GitHub
 # hint: new stable versions are located in the main branch,
 # and new development versions are located in the @9000 branch
-devtools::install_github("akoyabio/phenoptrReports@main")
-#devtools::install_github("akoyabio/phenoptrReports@9000")
+#devtools::install_github("akoyabio/phenoptrReports@main")
+devtools::install_github("akoyabio/phenoptrReports@9000")
