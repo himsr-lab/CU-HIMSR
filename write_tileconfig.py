@@ -258,7 +258,7 @@ INVERT_Y_AXIS = False  # MIBIscope
 LINESEP = "\n"  # newline character
 OFFSETS = [0, 0]  # pixel offsets for tile locations
 OUTPUT = "TileConfiguration.txt"  # name of output file
-VERSION = "write_tileconfig 0.9 (2023-01-14)"
+VERSION = "write_tileconfig 0.9 (2023-01-27)"
 
 
 #  main program
