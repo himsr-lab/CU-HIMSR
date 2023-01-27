@@ -33,8 +33,9 @@ with "conda" ("conda install tifffile") or "pip" ("pip install tifffile").
 Image data must be two-dimensional (no Z-stacks), but may contain multiple
 pages - corresponding to multiple channels per acquisition.
 The TIFF metadata is required for retrieving [X,Y] positions and resolutions.
-Place all image data that you want to stitch in the same folder as the script
-or add multiple folder paths to the 'FOLDERS' list.
+Place all image data that you want to stitch in the same folder and place
+this folder in the same location as the script. Alternatively, add multiple
+folder paths (to be stitched separately) to the 'FOLDERS' list.
 In the "Grid/Collection stitching" plugin, please choose the "Positions from
 file" (Type) and "Defined by TileConfiguration" (Order) in the first dialog.
 In the second dialog, you should only "Compute the overlap" if applicable,
@@ -263,7 +264,7 @@ VERSION = "write_tileconfig 0.9 (2023-01-14)"
 #  main program
 println(os.linesep)
 println(VERSION)
-for folder in get_folders(path=FOLDER):
+for folder in get_folders(path=FOLDER, pats=[""], antis=[], recurse=False):
     println(LINESEP + f"FOLDER: {folder}")
 
     # prepare list of files
