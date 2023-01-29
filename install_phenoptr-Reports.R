@@ -1,15 +1,15 @@
 #
 # phenoptr(Reports) Installation for Windows
-# Christian Rickert, 2022-12-07
+# Christian Rickert, 2023-01-29
 #
 
-# install R 4.1.2 or later
+# install R 4.1.3 (later version not supported)
 # see: https://cran.r-project.org/bin/windows/base/
 
-# install Rtools 4.0.0 or later
+# install Rtools 4.0 or later
 # see: https://cran.r-project.org/bin/windows/Rtools/
 
-# install RStudio Desktop 2021.09.2+382 or later
+# install RStudio Desktop 2022.12 or later
 # see: https://www.rstudio.com/products/rstudio/download/#download
 
 #
