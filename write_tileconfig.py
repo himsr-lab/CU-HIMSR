@@ -34,8 +34,8 @@ Image data must be two-dimensional (no Z-stacks), but may contain multiple
 pages - corresponding to multiple channels per acquisition.
 The TIFF metadata is required for retrieving [X,Y] positions and resolutions.
 Place all image data that you want to stitch in the same folder and place
-this folder in the same location as the script. Alternatively, add multiple
-folder paths (to be stitched separately) to the 'FOLDERS' list.
+this folder in the same location as the script. Alternatively, specify the
+FOLDER variable with a path string directly.
 In the "Grid/Collection stitching" plugin, please choose the "Positions from
 file" (Type) and "Defined by TileConfiguration" (Order) in the first dialog.
 In the second dialog, you should only "Compute the overlap" if applicable,
@@ -97,39 +97,6 @@ def get_files(path="", pats=None, antis=None, recurse=False):
                         )
                     )
     return flatten(files)
-
-
-def get_folders(path="", pats=None, antis=None, recurse=False):
-    """Iterate through a folder structure and return a list of matching folders.
-    Keyword arguments:
-    path -- the path to a folder containing folders (default "")
-    patterns -- list of strings where one of the strings needs to be
-                part of the folder name (default "None")
-    antipattern -- list of strings where none of the strings may be
-                   part of the folder name (default "None")
-    recurse -- boolen that allows the function to recurse through
-               the folder path (default "False")
-    """
-    folders = []
-    realpath = os.path.realpath(path)
-    with os.scandir(realpath) as fileobject_iterator:
-        for fileobject in fileobject_iterator:
-            if not os.path.islink(fileobject.path):
-                if fileobject.is_dir():
-                    if matching_patterns(
-                        pats=pats, antis=antis, string=fileobject.name
-                    ):
-                        folders.append(fileobject.path)
-                    elif recurse:
-                        folders.append(
-                            get_folders(
-                                path=fileobject.path,
-                                pats=pats,
-                                antis=antis,
-                                recurse=recurse,
-                            )
-                        )
-    return flatten(folders)
 
 
 def get_grid_layout(coordinates=None):
@@ -258,83 +225,81 @@ INVERT_Y_AXIS = False  # MIBIscope
 LINESEP = "\n"  # newline character
 OFFSETS = [0, 0]  # pixel offsets for tile locations
 OUTPUT = "TileConfiguration.txt"  # name of output file
-VERSION = "write_tileconfig 0.9 (2023-01-27)"
+VERSION = "write_tileconfig 0.9 (2023-03-14)"
 
 
 #  main program
 println(os.linesep)
 println(VERSION)
-for folder in get_folders(path=FOLDER, pats=[""], antis=[], recurse=False):
-    println(LINESEP + f"FOLDER: {folder}")
+println(LINESEP + f"FOLDER: {FOLDER}")
 
-    # prepare list of files
-    FILES = []
-    for file in get_files(path=folder, pats=[FILE_TARGET], antis=[], recurse=False):
-        FILES.append(file)
+# prepare list of files
+FILES = []
+for file in get_files(path=FOLDER, pats=[FILE_TARGET], antis=[], recurse=False):
+    FILES.append(file)
 
-    # write tile configuration file
-    with open(
-        os.path.abspath(folder + os.sep + OUTPUT),
-        "w",
-        encoding="utf-8",
-    ) as file_out:
-        # write image dimensions
-        file_out.write(
-            "# Define the number of dimensions we are working on"
-            + LINESEP
-            + "dim = 2"
-            + LINESEP
-        )
-        # write script variables
-        file_out.write(
-            f"# Inversion:\t{INVERT_Y_AXIS}"
-            + LINESEP
-            + f"# Offsets:\t\tX={OFFSETS[0]}, Y={OFFSETS[1]}"
-            + LINESEP
-        )
-        # determine image locations
-        locations = []
-        file_out.write("# Define the image coordinates (in pixels)" + LINESEP)
-        for file in FILES:
-            name = os.path.basename(file)
-            println(LINESEP + f"\tFILE: {name}")
-            with tifff.TiffFile(file) as tif:
-                UNIT = get_tiff_unit(tif)  # [px, inch, cm]
-                resolutions = get_tiff_res(tif, UNIT)  # [px, cm]
-                x, y, u = get_tiff_pos(tif, UNIT)  # [px, cm]
-                location = (
-                    round(resolutions[0] * float(x)),
-                    round(resolutions[1] * float(y)),
-                )  # [px]
-                locations.append(location)
-                println(
-                    f"\t\tRES = {resolutions[0]},{resolutions[1]} (1/{u})"
-                    + LINESEP
-                    + f"\t\tPOS = [{x},{y}] ({u})"
-                    + LINESEP
-                    + f"\t\tLOC = [{locations[-1][0]},{locations[-1][1]}] (px)"
-                )
-        # determine row and column coordinates
-        columns, rows = get_grid_layout(locations)
-        # adjust coordinate system upon request
-        if INVERT_Y_AXIS:
-            y_max = max(rows)
-            locations = [
-                (location_x, -(location_y - y_max))
-                for location_x, location_y in locations
-            ]
-            rows = [-(row - y_max) for row in rows]
-            OFFSETS[1] = -OFFSETS[1]
-        # write image locations from corrected image coordinates
-        for idx, file in enumerate(FILES):
-            location_x = locations[idx][0]
-            location_y = locations[idx][1]
-            file_out.write(
-                os.path.basename(file)
-                + "; ; ("
-                + str(float(location_x + OFFSETS[0] * columns.index(location_x)))
-                + ", "
-                + str(float(location_y + OFFSETS[1] * rows.index(location_y)))
-                + ")"
+# write tile configuration file
+with open(
+    os.path.abspath(FOLDER + os.sep + OUTPUT),
+    "w",
+    encoding="utf-8",
+) as file_out:
+    # write image dimensions
+    file_out.write(
+        "# Define the number of dimensions we are working on"
+        + LINESEP
+        + "dim = 2"
+        + LINESEP
+    )
+    # write script variables
+    file_out.write(
+        f"# Inversion:\t{INVERT_Y_AXIS}"
+        + LINESEP
+        + f"# Offsets:\t\tX={OFFSETS[0]}, Y={OFFSETS[1]}"
+        + LINESEP
+    )
+    # determine image locations
+    locations = []
+    file_out.write("# Define the image coordinates (in pixels)" + LINESEP)
+    for file in FILES:
+        name = os.path.basename(file)
+        println(LINESEP + f"\tFILE: {name}")
+        with tifff.TiffFile(file) as tif:
+            UNIT = get_tiff_unit(tif)  # [px, inch, cm]
+            resolutions = get_tiff_res(tif, UNIT)  # [px, cm]
+            x, y, u = get_tiff_pos(tif, UNIT)  # [px, cm]
+            location = (
+                round(resolutions[0] * float(x)),
+                round(resolutions[1] * float(y)),
+            )  # [px]
+            locations.append(location)
+            println(
+                f"\t\tRES = {resolutions[0]},{resolutions[1]} (1/{u})"
                 + LINESEP
+                + f"\t\tPOS = [{x},{y}] ({u})"
+                + LINESEP
+                + f"\t\tLOC = [{locations[-1][0]},{locations[-1][1]}] (px)"
             )
+    # determine row and column coordinates
+    columns, rows = get_grid_layout(locations)
+    # adjust coordinate system upon request
+    if INVERT_Y_AXIS:
+        y_max = max(rows)
+        locations = [
+            (location_x, -(location_y - y_max)) for location_x, location_y in locations
+        ]
+        rows = [-(row - y_max) for row in rows]
+        OFFSETS[1] = -OFFSETS[1]
+    # write image locations from corrected image coordinates
+    for idx, file in enumerate(FILES):
+        location_x = locations[idx][0]
+        location_y = locations[idx][1]
+        file_out.write(
+            os.path.basename(file)
+            + "; ; ("
+            + str(float(location_x + OFFSETS[0] * columns.index(location_x)))
+            + ", "
+            + str(float(location_y + OFFSETS[1] * rows.index(location_y)))
+            + ")"
+            + LINESEP
+        )
