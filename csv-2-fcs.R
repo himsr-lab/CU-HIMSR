@@ -18,39 +18,35 @@
 #
 #  Title:     csv-2-fcs
 #  Summary:   Converts text files into flow cytometry standard files
-#  Version:   1.0 (2022-10-23)
+#  Version:   1.0 (2023-09-02)
 #
 #  DOI:       https://doi.org/10.5281/zenodo.4741394
 #  URL:       https://github.com/christianrickert/CU-HIMSR/
 #
 #  Description:
 #
-#  csv-2-fcs is an R script for RStudio that converts text files with
-#  various delimiters (*.csv, *.txt) into flow cytometry standard files
-#  (*.fcs) based on the the FCS 3.0 specifications using 'flowCore'.
-#  The script can specifically include and/or exclude user-specified
-#  columns and will remove all non-numeric columns before exporting.
-#  Non-numeric entries in numeric columns will be replaced with zeros.
-#  While the script aims at minimizing its memory footprint, please
-#  keep in mind that it will use at minimum the input data size after
-#  reading and at maximum two times the input data size during conversion,
-#  depending on your selection of the desired output data.
-#  Furthermore, performance will also depend on your data input source
-#  (SSD > HDD > network) and your operating system: MacOS is using only
-#  a single-threaded version of 'data.table' by default. However, a
-#  multi-threaded version can be installed manually:
+#  csv-2-fcs is an R script for RStudio that converts text files with various delimiters (*.csv,
+#  *.tsv, *.txt) into flow cytometry standard files (*.fcs) based on the the FCS 3.0 specifications
+#  using the 'flowCore' package.
+#  The script can specifically include and/or exclude user-specified columns and will automatically
+#  remove all non-numeric columns before exporting. Non-numeric entries in numeric columns will be
+#  replaced with zeros.
+#  While the script aims at minimizing its memory footprint, please keep in mind that it will use at
+#  minimum the input data size after reading and at maximum two times the input data size during
+#  conversion, depending on your selection of the desired output data. Furthermore, performance will
+#  also depend on your data input source (SSD > HDD > network) and your operating system:
+#  By default, MacOS is using only a single-thread version of 'data.table'. However, a multi-thread
+#  version can be installed manually:
 #  [https://gist.github.com/christianrickert/8c1634a7f749589ff915368f66869aa1]
-#     Copy the script to your target location and run it for first time
-#  to create an 'import' and an 'export' folder. Then place your text
-#  files into the 'import' folder and confirm the script's variables.
-#  Finally, run the script to batch-process your files.
-#  If you activate the 'revertResult' variable by setting it to TRUE,
-#  the script will convert the FCS export files back into CSV files -
-#  so you can easily check the quality of the conversion.
-#     This script is a complete redesign and rewrite inspired by
-#  Thomas Hurst's "CSV-to-FCS" and "FCS-to-CSV" repository scripts,
-#  [https://github.com/sydneycytometry/CSV-to-FCS]
-#  which were in turn adapted from Yann Abraham's "createFlowFram"script
+#      Copy the script to your target location and run it several times in a row until all packages
+#  have been installed. After that, each consecutive run will create an 'import' and an 'export'
+#  folder in the script's folder: Place your text files into the 'import' folder and run the script
+#  to batch-generate your file output. You may set the 'revertResult' variable to TRUE, in order to
+#  convert the FCS files back into CSV files (export folder) - so you can easily confirm the
+#  quality of the conversion.
+#     This script is a complete rewrite inspired by Thomas Hurst's "CSV-to-FCS" R script:
+#  [https://github.com/sydneycytometry/CSV-to-FCS],
+#  which was in turn adapted from Yann Abraham's "createFlowFrame" R script:
 #  [https://gist.github.com/yannabraham/c1f9de9b23fb94105ca5].
 
 #
@@ -81,7 +77,7 @@ catflush <- function(string) {
 # set input and output variables
 currentFolder   <- dirname(rstudioapi::getSourceEditorContext()$path)  # script location
 importFolder    <- file.path(currentFolder, "import", fsep = .Platform$file.sep)  # relative path
-importPattern   <- "\\.csv$|\\.txt$"  # file extension search expression (case-insensitive)
+importPattern   <- "\\.csv$|\\.tsv|\\.txt$"  # file extension search expression (case-insensitive)
 importSeparator <- "auto"  # alternatively, set to fixed value of "," (comma) or "\t" (tabulator)
 includeColumns  <- c()  # include columns, exclusively, by name before export (case-sensitive)
 excludeColumns  <- c()  # exclude columns by name before export (case-sensitive)
