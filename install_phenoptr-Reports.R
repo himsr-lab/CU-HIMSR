@@ -1,12 +1,10 @@
 #
 # phenoptr(Reports) Installation for Windows
-# Christian Rickert, 2023-09-26
+# Christian Rickert, 2023-11-03
 #
 
 # install R 4.1.3 (later version not supported)
 # see: (Windows)  https://cran.r-project.org/bin/windows/base/old/
-# see: (MacOS)    https://cran.r-project.org/bin/macosx/big-sur-x86_64/
-#                 https://cran.r-project.org/bin/macosx/big-sur-arm64/
 
 # install Rtools 4.0 or later
 # see: (Windows)  https://cran.r-project.org/bin/windows/Rtools/
@@ -21,6 +19,16 @@
 
 # install devtools package
 install.packages("devtools")
+
+# install httpuv binary for Windows
+install.packages("httpuv", type = "win.binary")
+
+# install archived CRAN package spatstat.core
+# see: https://github.com/akoyabio/phenoptr/issues/21#issuecomment-1366595082
+spatstat_core_url <- "https://cran.r-project.org/src/contrib/Archive/spatstat.core/spatstat.core_2.4-4.tar.gz"
+spatstat_core_pkgFile <- "spatstat.core_2.4-4.tar.gz"
+download.file(url = spatstat_core_url, destfile = spatstat_core_pkgFile)
+install.packages(pkgs=spatstat_core_pkgFile, type="source", repos=NULL)
 
 # phenoptr
 # see: https://akoyabio.github.io/phenoptr/
