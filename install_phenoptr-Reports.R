@@ -3,7 +3,7 @@
 # Christian Rickert, 2023-11-13
 #
 
-# install R 4.1.3
+# install R 4.1.0 or later
 # see: (Windows)  https://cran.r-project.org/bin/windows/base/old/
 
 # install Rtools 4.0 or later
