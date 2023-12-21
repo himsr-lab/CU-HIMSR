@@ -46,57 +46,32 @@ See: https://imagej.net/plugins/image-stitching
 
 
 # imports
+import fnmatch
 import os
 import sys
 import tifffile as tifff
 
 
 # functions
-def flatten(deep_list=None):
-    """Flatten a nested list of lists and typles and return a single list.
-    Keyword arguments:
-    deep_list -- a nested list of lists and tuples
-    """
-    flat_list = []
-    for item in deep_list:
-        if isinstance(item, (list, tuple)):
-            flat_list.extend(flatten(item))
-        else:
-            flat_list.append(item)
-    return flat_list
-
-
-def get_files(path="", pats=None, antis=None, recurse=False):
+def get_files(path="", pat=None, anti=None, recurse=True):
     """Iterate through all files in a folder structure and
     return a list of matching files.
+
     Keyword arguments:
     path -- the path to a folder containing files (default "")
-    patterns -- list of strings where one of the strings needs to be
-                part of the file name (default "None")
-    antipattern -- list of strings where none of the strings may be
-                   part of the file name (default "None")
-    recurse -- boolen that allows the function to recurse through
-               the folder path (default "False")
+    pat -- string pattern that needs to be part of the file name (default "None")
+    anti -- string pattern that may not be part of the file name (default "None")
+    recurse -- boolen that allows the function to work recursively (default "False")
     """
-    files = []
-    realpath = os.path.realpath(path)
-    with os.scandir(realpath) as fileobject_iterator:
-        for fileobject in fileobject_iterator:
-            if not os.path.islink(fileobject.path):
-                if fileobject.is_file() and matching_patterns(
-                    pats=pats, antis=antis, string=fileobject.name
-                ):
-                    files.append(fileobject.path)
-                elif recurse and fileobject.is_dir():
-                    files.append(
-                        get_files(
-                            path=fileobject.path,
-                            pats=pats,
-                            antis=antis,
-                            recurse=recurse,
-                        )
-                    )
-    return flatten(files)
+    FILES = []
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            file = os.path.join(root, file)
+            if fnmatch.fnmatch(file, pat) and not fnmatch.fnmatch(file, anti):
+                FILES.append(file)
+        if not recurse:
+            break  # from `os.walk()`
+    return FILES
 
 
 def get_grid_layout(coordinates=None):
@@ -190,52 +165,25 @@ def get_tiff_unit(tiff=None):
     return "px"
 
 
-def matching_patterns(pats=None, antis=None, string=""):
-    """Check for matching patterns and for non-matching antipatterns and
-       return a match boolean.
-    Keyword arguments:
-    pats -- list of strings that need to be part of
-            the input string (default None)
-    antis -- list of strings that may not to be part of
-             the input string (default None)
-    string -- input string to look for matching patterns and
-              non-matching antipatterns (default "")
-    """
-    match = bool(
-        True in [(pattern in string) for pattern in pats]
-        and not (True in [(antipattern in string) for antipattern in antis])
-    )
-    return match
-
-
-def println(string=""):
-    """Prints a string and forces immediate output.
-    Keyword arguments:
-    string -- string to be printed (default None)
-    """
-    sys.stdout.write(string + LINESEP)
-    sys.stdout.flush()
-
-
 # variables
-FILE_TARGET = ".tif"  # file search pattern
+FILE_TARGET = "*.tif"  # file search pattern
 FOLDER = os.path.abspath(os.getcwd())  # working directory
 IN_CM = 2.54  # inch to centimeter
 INVERT_Y_AXIS = False  # MIBIscope
 LINESEP = "\n"  # newline character
 OFFSETS = [0, 0]  # pixel offsets for tile locations
 OUTPUT = "TileConfiguration.txt"  # name of output file
-VERSION = "write_tileconfig 0.9 (2023-03-14)"
+VERSION = "write_tileconfig 0.9 (2023-12-21)"
 
 
 #  main program
-println(os.linesep)
-println(VERSION)
-println(LINESEP + f"FOLDER: {FOLDER}")
+print(os.linesep, flush=True)
+print(VERSION, flush=True)
+print(LINESEP + f"FOLDER: {FOLDER}", flush=True)
 
 # prepare list of files
 FILES = []
-for file in get_files(path=FOLDER, pats=[FILE_TARGET], antis=[], recurse=False):
+for file in get_files(path=FOLDER, pat=FILE_TARGET, anti="", recurse=False):
     FILES.append(file)
 
 # write tile configuration file
@@ -263,7 +211,7 @@ with open(
     file_out.write("# Define the image coordinates (in pixels)" + LINESEP)
     for file in FILES:
         name = os.path.basename(file)
-        println(LINESEP + f"\tFILE: {name}")
+        print(LINESEP + f"\tFILE: {name}", flush=True)
         with tifff.TiffFile(file) as tif:
             UNIT = get_tiff_unit(tif)  # [px, inch, cm]
             resolutions = get_tiff_res(tif, UNIT)  # [px, cm]
@@ -273,12 +221,13 @@ with open(
                 round(resolutions[1] * float(y)),
             )  # [px]
             locations.append(location)
-            println(
+            print(
                 f"\t\tRES = {resolutions[0]},{resolutions[1]} (1/{u})"
                 + LINESEP
                 + f"\t\tPOS = [{x},{y}] ({u})"
                 + LINESEP
-                + f"\t\tLOC = [{locations[-1][0]},{locations[-1][1]}] (px)"
+                + f"\t\tLOC = [{locations[-1][0]},{locations[-1][1]}] (px)",
+                flush=True,
             )
     # determine row and column coordinates
     columns, rows = get_grid_layout(locations)
