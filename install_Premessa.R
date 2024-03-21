@@ -1,13 +1,13 @@
 #
 # Premessa Installation for Windows
-# Christian Rickert, 2022-11-05
+# Christian Rickert, 2024-03-21
 #
 
-# install R 4.2.2 for Windows
+# install R 4.3.3 for Windows
 # see: https://cran.r-project.org/bin/windows/base/
 
-# install Rtools42 for Windows
-# see: https://cran.r-project.org/bin/windows/Rtools/rtools42/rtools.html
+# install Rtools43 for Windows
+# see: https://cran.r-project.org/bin/windows/Rtools/rtools43/rtools.html
 
 # install devtools package
 install.packages("devtools")
