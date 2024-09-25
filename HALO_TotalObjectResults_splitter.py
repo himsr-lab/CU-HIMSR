@@ -44,6 +44,7 @@ export folder.
 #  imports
 
 import fnmatch
+import io
 import os
 import re
 import sys
@@ -92,14 +93,12 @@ def unmerge_data(in_path="", out_path=""):
         if os.listdir(out_path):
             print("OUTPUT PATH NOT EMPTY. EXITING.")
             sys.exit(0)
+        out_file = io.StringIO("")
         header = in_file.readline()  # read and call `next()` on iterator
         for lines, in_line in enumerate(in_file, start=1):
             image_name = get_image_name(in_line, pattern=NAME_PATTERN)
             if image_name not in known_images:
-                try:
-                    out_file.close()  # previous file, if available
-                except UnboundLocalError:
-                    pass  # not available yet
+                out_file.close()  # previous file
                 out_file_path = os.path.abspath(
                     os.path.join(out_path, image_name + ".csv")
                 )
@@ -116,9 +115,9 @@ def unmerge_data(in_path="", out_path=""):
 EXPORT_FOLDER = r".\export"
 FILE_TARGET = "*Total_Object_Results.csv"
 IMPORT_FOLDER = r".\import"
-NAME_PATTERN = re.compile(r'^.*[\\/]([^"]*?)(?=_Scan)')  # Akoya Polaris
-# NAME_PATTERN = re.compile(r"([^\\\/]+?)(?=\.[a-zA-Z0-9]+)")  # generic
-VERSION = "HALO_summaryfile_splitter 1.0 (2024-09-23)"
+# NAME_PATTERN = #re.compile(r"(\d{6}\s[\w#&\s\-_\.+]+)(?=_Scan)")  # Akoya Polaris
+NAME_PATTERN = re.compile(r"\\([^\\]+?)\.[^\\.]+(?=" ")")  # generic
+VERSION = "HALO_summaryfile_splitter 1.0 (2024-09-25)"
 
 #  main program
 
@@ -138,11 +137,11 @@ known_images = set()  # keep across multiple merge files
 for index, file in enumerate(get_files(IMPORT_FOLDER, FILE_TARGET)):
     print("\tFILE: " + file)
     unmerged = unmerge_data(in_path=file, out_path=EXPORT_FOLDER)
-    print("\tLINES: " + str(unmerged[0]), "NAMES: " + str(unmerged[1]))
+    print("\tLINES: " + str(unmerged[0]), "MATCHES: " + str(unmerged[1]))
     FILE_COUNT += 1
 
 print("FILES: " + str(FILE_COUNT))
 print(os.linesep)
 
 
-WAIT = input("Press ENTER to exit this program.")
+# WAIT = input("Press ENTER to exit this program.")
