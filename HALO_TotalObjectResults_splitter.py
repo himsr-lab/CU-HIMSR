@@ -115,7 +115,7 @@ def unmerge_data(in_path="", out_path=""):
 EXPORT_FOLDER = r".\export"
 FILE_TARGET = "*Total_Object_Results.csv"
 IMPORT_FOLDER = r".\import"
-# NAME_PATTERN = #re.compile(r"(\d{6}\s[\w#&\s\-_\.+]+)(?=_Scan)")  # Akoya Polaris
+# NAME_PATTERN = re.compile(r"(\d{6}\s[\w#&\s\-_\.+]+)(?=_Scan)")  # Akoya Polaris
 NAME_PATTERN = re.compile(r"\\([^\\]+?)\.[^\\.]+(?=" ")")  # generic
 VERSION = "HALO_summaryfile_splitter 1.0 (2024-09-25)"
 
