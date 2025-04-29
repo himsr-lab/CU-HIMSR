@@ -44,21 +44,19 @@ otherwise the plugin will throw an exception.
 See: https://imagej.net/plugins/image-stitching
 """
 
-
 # imports
 import fnmatch
 import os
-import sys
 import tifffile as tifff
 
 
 # functions
-def get_files(path="", pat=None, anti=None, recurse=True):
-    """Iterate through all files in a folder structure and
-    return a list of matching files.
+def get_files(path="", pat="*", anti="", recurse=False):
+    """Iterate through all files in a directory structure and
+       return a list of matching files.
 
     Keyword arguments:
-    path -- the path to a folder containing files (default "")
+    path -- the path to a directory containing files (default "")
     pat -- string pattern that needs to be part of the file name (default "None")
     anti -- string pattern that may not be part of the file name (default "None")
     recurse -- boolen that allows the function to work recursively (default "False")
@@ -77,6 +75,7 @@ def get_files(path="", pat=None, anti=None, recurse=True):
 def get_grid_layout(coordinates=None):
     """Sort a list of coordinates and return a tuple of set-like coordinate lists.
     The two lists will denote the X and Y coordinates for each grid column and row.
+    Keyword arguments:
     coordinates -- the list with one or more coordinates (default "None")
     """
     sorted_set_locations = []
@@ -98,7 +97,7 @@ def get_tiff_pix(tiff=None):
     Keyword arguments:
     tiff -- the TiffFile object (default None)
     """
-    # get image dimensions [ ]
+    # get image dimensions [px]
     x_pix = int(tiff.pages[0].tags["ImageWidth"].value)
     y_pix = int(tiff.pages[0].tags["ImageLength"].value)
     return (x_pix, y_pix)
@@ -120,11 +119,6 @@ def get_tiff_pos(tiff=None, unit=""):
         tiff.pages[0].tags["YPosition"].value[0]
         / tiff.pages[0].tags["YPosition"].value[1]
     )
-    # convert unit from [inch] to [cm]
-    if unit == "inch":
-        x_pos *= IN_CM
-        y_pos *= IN_CM
-        unit = "cm"
     return (x_pos, y_pos, unit)
 
 
@@ -135,7 +129,7 @@ def get_tiff_res(tiff=None, unit=""):
     tiff -- the TiffFile object (default None)
     unit -- the TIFF's resolution unit as string (default "")
     """
-    # get image resolutions [1, 1/inch, 1/cm]
+    # get image resolutions [1/px, 1/inch, 1/cm]
     x_res = float(
         tiff.pages[0].tags["XResolution"].value[0]
         / tiff.pages[0].tags["XResolution"].value[1]
@@ -144,11 +138,6 @@ def get_tiff_res(tiff=None, unit=""):
         tiff.pages[0].tags["YResolution"].value[0]
         / tiff.pages[0].tags["YResolution"].value[1]
     )
-    # convert unit to [cm]
-    if unit == "inch":
-        x_res *= IN_CM
-        y_res *= IN_CM
-        unit = "cm"
     return (x_res, y_res, unit)
 
 
@@ -158,22 +147,22 @@ def get_tiff_unit(tiff=None):
     tiff -- the TiffFile object (default None)
     """
     unit = str(tiff.pages[0].tags["ResolutionUnit"].value).lower()
-    if unit.endswith("centimeter"):
-        return "cm"
-    if unit.endswith("inch"):
+    if unit == "1":
+        return "px"
+    if unit == "2":
         return "inch"
-    return "px"
+    if unit == "3":
+        return "cm"
 
 
 # variables
 FILE_TARGET = "*.tif"  # file search pattern
 FOLDER = os.path.abspath(os.getcwd())  # working directory
-IN_CM = 2.54  # inch to centimeter
 INVERT_Y_AXIS = False  # MIBIscope
 LINESEP = "\n"  # newline character
 OFFSETS = [0, 0]  # pixel offsets for tile locations
 OUTPUT = "TileConfiguration.txt"  # name of output file
-VERSION = "write_tileconfig 0.9 (2023-12-21)"
+VERSION = "write_tileconfig 0.9 (2025-04-29)"
 
 
 #  main program
@@ -213,9 +202,9 @@ with open(
         name = os.path.basename(file)
         print(LINESEP + f"\tFILE: {name}", flush=True)
         with tifff.TiffFile(file) as tif:
-            UNIT = get_tiff_unit(tif)  # [px, inch, cm]
-            resolutions = get_tiff_res(tif, UNIT)  # [px, cm]
-            x, y, u = get_tiff_pos(tif, UNIT)  # [px, cm]
+            unit = get_tiff_unit(tif)  # [px, inch, cm]
+            resolutions = get_tiff_res(tif, unit)  # [1/px, 1/inch, 1/cm]
+            x, y, u = get_tiff_pos(tif, unit)  # [px, cm]
             location = (
                 round(resolutions[0] * float(x)),
                 round(resolutions[1] * float(y)),
