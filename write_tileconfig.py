@@ -204,7 +204,7 @@ with open(
         with tifff.TiffFile(file) as tif:
             unit = get_tiff_unit(tif)  # [px, inch, cm]
             resolutions = get_tiff_res(tif, unit)  # [1/px, 1/inch, 1/cm]
-            x, y, u = get_tiff_pos(tif, unit)  # [px, cm]
+            x, y, u = get_tiff_pos(tif, unit)  #  [px, inch, cm]
             location = (
                 round(resolutions[0] * float(x)),
                 round(resolutions[1] * float(y)),
