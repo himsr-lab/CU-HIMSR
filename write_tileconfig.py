@@ -162,7 +162,7 @@ INVERT_Y_AXIS = False  # MIBIscope
 LINESEP = "\n"  # newline character
 OFFSETS = [0, 0]  # pixel offsets for tile locations
 OUTPUT = "TileConfiguration.txt"  # name of output file
-VERSION = "write_tileconfig 0.9 (2025-04-29)"
+VERSION = "write_tileconfig 0.9 (2025-04-30)"
 
 
 #  main program
@@ -218,6 +218,10 @@ with open(
                 + f"\t\tLOC = [{locations[-1][0]},{locations[-1][1]}] (px)",
                 flush=True,
             )
+    # subtract stage offset to transfer coordinates to local set
+    x_min = min([x for x, y in locations])
+    y_min = min([y for x, y in locations])
+    locations = [(x - x_min, y - y_min) for x, y in locations]
     # determine row and column coordinates
     columns, rows = get_grid_layout(locations)
     # adjust coordinate system upon request
@@ -235,9 +239,9 @@ with open(
         file_out.write(
             os.path.basename(file)
             + "; ; ("
-            + str(float(location_x + OFFSETS[0] * columns.index(location_x)))
+            + str(float(location_x + columns.index(location_x) * OFFSETS[0]))
             + ", "
-            + str(float(location_y + OFFSETS[1] * rows.index(location_y)))
+            + str(float(location_y + rows.index(location_y) * OFFSETS[1]))
             + ")"
             + LINESEP
         )
